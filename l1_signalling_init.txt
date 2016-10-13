@@ -1,0 +1,131 @@
+		//**************L1 pre start**************//
+00		// 00)				input streams type: 0 = TS only
+8E		// 01)	[7]		extended carrier mode: 0 = off, 1 = on
+		//			[6:4]		S1 (preamble format): 0 = T2 SISO
+		//			[3:1]		S2 field 1 (FFT size and guard interval): 0 = 2k; 1 = 8k 1/(32,16,8,4); 2 = 4k; 3 = 1k; 4 = 16k; 5 = 32k 1/(32,16,8); 6 = 8k 1/128 19/(256,128); 7 = 32k 1/128 19/(256,128)
+		//			[0]		S2 field 2: 0 = same preambles, 1 = mixed preambles
+40		// 02)	[7]		L1 repetition flag: 0 = off, 1 = on
+		//			[6:4]		guard interval: 0 = 1/32, 1 = 1/16, 2 = 1/8, 3 = 1/4, 4 = 1/128, 5 = 19/128, 6 = 19/256
+		//			[3:0]		PAPR
+30		// 03)	[7:4]		L1 modulation: 0 = BPSK, 1 = QPSK, 2 = 16-QAM, 3 = 64-QAM
+		//			[3:2]		L1 code rate: 0 = 1/2
+		//			[1:0]		L1 FEC type: 0 = 16k LDPC
+00		// 04)				L1_post_size[17:10] (size of the L1 post in OFDM cells)
+3E		// 05)				L1_post_size[9:2]
+80		// 06)	[7:6]		L1_post_size[1:0]
+		//			[5:0]		L1_post_info_size[17:12] (size of L1 post in bits, for 1 PLP = 318)
+13		// 07)				L1_post_info_size[11:4]
+E6		// 08)	[7:4]		L1_post_info_size[3:0]
+		//			[3:0]		pilot_pattern: 0 = PP1, ..., 7 = PP8
+00		// 09)				tx id availability (is transmitter able to emit identification signals for curent geo cell)
+00		// 10)				cell_id[15:8]
+00		// 11)				cell_id[7:0]
+30		// 12)				network_id[15:8]
+85		// 13)				network_id[7:0]
+80		// 14)				t2_system_id[15:8]
+01		// 15)				t2_system_id[7:0]
+02		// 16)				num_t2_frames (frames in superframe)
+03		// 17)				num_data_symbols[11:4] (num of OFDM symbols with data, same as L_data)
+B0		// 18)	[7:4]		num_data_symbols[3:0];
+		//			[3:1]		regen flag (how many times DVB-T2 signal has been regenerated)
+		//			[0]		L1 post extension: 0 = not present, 1 = present
+20		// 19)	[7:5]		num of radio frequencies;
+		//			[4:2]		current RF index
+		//			[1:0]		t2_version[3:2]: 0 = 1.1.1, 1 = 1.2.1, 2 = 1.3.1
+00		// 20)	[7:6]		t2_version[1:0]
+		//			[5]		L1 post scrambled: 0 = no, 1 = yes
+		//			[4]		T2 profile: 0 = base, 1 = lite
+		//			[3:0]		reserved
+		//**************L1 pre end**************//
+
+00		// 21)				L1 conf len[15:8]
+BF		// 22)				L1 conf len[7:0]
+
+		//**************L1 post conf start**************//
+00		// 23)				subslices_per_frame[14:7]
+02		// 24)	[7:1]		subslices_per_frame[6:0]
+		//			[0]		num plp[7]
+02		// 25)	[7:1]		num plp[6:0]
+		//			[0]		num_aux[3]
+00		// 26)	[7:5]		num_aux[2:0]
+		//			[4:0]		aux_config_rfu[7:3]
+00		// 27)	[7:5]		aux_config_rfu[2:0]
+		//			[4:2]		rf_index
+		//			[1:0]		frequency[31:30]
+8F		// 28)				frequency[29:22]
+87		// 29)				frequency[21:14]
+2A		// 30)				frequency[13:6]
+00		// 31)	[7:2]		frequency[5:0]
+		//			[1:0]		plp_id[7:6]
+00		// 32)	[7:2]		plp_id[5:0];
+		//			[1:0]		plp_type[2:1]: 0 = common PLP; 1 = data PLP type 1; 2 = data PLP type 2 
+8C		// 33)	[7]		plp_type[0]
+		//			[6:2]		plp_payload_type: 3 = TS
+		//			[1]		ff_flag
+		//			[0]		first rf idx[2]
+00		// 34)	[7:6]		first rf idx[1:0]
+		//			[5:0]		first frame idx[7:2]
+00		// 35)	[7:6]		first frame idx[1:0]
+		//			[5:0]		plp group id[7:2]
+4B		// 36)	[7:6]		plp_group_id[1:0]
+		//			[5:3]		plp_code: 0 = 1/2, 1 = 3/5, 2 = 2/3, 3 = 3/4, 4 = 4/5, 5 = 5/6
+		//			[2:0]		plp_mod: 0 = QPSK, 1 = 16-QAM, 2 = 64-QAM, 3 = 256-QAM
+A6		// 37)	[7]		plp_rotation: 0 = not used, 1 = used
+		//			[6:5]		plp_fec_type: 0 = 16k LDPC, 1 = 64k LDPC
+		//			[4:0]		plp_num_blocks_max[9:5]
+50		// 38)	[7:3]		plp_num_blocks_max[4:0]
+		//			[2:0]		frame_interval[7:5]
+08		// 39)	[7:3]		frame_interval[4:0]
+		//			[2:0]		time il len[7:5]
+18		// 40)	[7:3]		time il len[4:0]
+		//			[2]		time il type
+		//			[1]		in-band A flag
+		//			[0]		in-band B flag
+00		// 41)				reserved[10:3]
+10		// 42)	[7:5]		reserved[2:0]
+		//			[4:3]		plp_mode: 1 = NM, 2 = HEM
+		//			[2]		static flag (L1 post may or may not change within 1 superframe): 0 = non-static L1 post, 1 = static L1 post
+		//			[1]		static padding flag (DFL may or may not change from one BB frame to another): 0 - non-static padding, 1 = static padding
+		//			[0]		fef len msb[1]
+00		// 43)	[7]		fef len msb[0]
+		//			[6:0]		reserved[29:23]
+00		// 44)				reserved[22:15]
+00		// 45)				reserved[14:7]
+00		// 46)	[7:1]		reserved[6:0]
+		//			[0]		full-byte padding
+		//**************L1 post conf end**************//
+		
+00		// 47)				L1 dyn len[15:8]
+7F		// 48)				L1 dyn len[7:0]
+		
+		//**************L1 post dyn start**************//
+00		// 49)				frame_idx
+00		// 50)				subslice_interval[21:14]
+00		// 51)				subslice_interval[13:6]
+00		// 52)	[7:2]		subslice_interval[5:0]
+		//			[1:0]		type 2 start[21:20]
+00		// 53)				type 2 start[19:12]
+00		// 54)				type 2 start[11:4]
+00		// 55)	[7:4]		type 2 start[3:0]
+		//			[3:0]		L1 change counter[7:4]
+00		// 56)	[7:4]		L1 change counter[3:0]
+		//			[3:1]		start rf idx
+		//			[0]		reserved1[7]
+00		// 57)	[7:1]		reserved1[6:0]
+		//			[0]		plp_id[7];
+00		// 58)	[7:1]		plp_id[6:0];
+		//			[0]		plp_start[21]
+00		// 59)				plp_start[20:13]
+00		// 60)				plp_start[12:5]
+01		// 61)	[7:3]		plp_start[4:0]
+		//			[2:0]		plp_num_blocks[9:7]
+94		// 62)	[7:1]		plp_num_blocks[6:0]
+		//			[0]		reserved2[7]
+00		// 63)	[7:1]		reserved2[6:0]
+		//			[0]		reserved3[7]
+00		// 64)	[7:1]		reserved3[6:0]
+		//			[0]		full-byte padding
+		//**************L1 post dyn end**************//
+
+00		// 65)				L1 ext len[15:8]
+00		// 66)				L1 ext len[7:0]
