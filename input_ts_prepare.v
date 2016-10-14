@@ -9,7 +9,7 @@ input NM_or_HEM,
 output [7:0] DATA_OUT,
 output [7:0] BYTE_INDEX,
 output SYNC_FOUND,
-output reg ENA_OUT
+output EMPTY
 );
 assign SYNC_FOUND = sync_found;
 
@@ -36,22 +36,12 @@ input_ts_fifo input_ts_fifo(		// check fifo size. may be very big or small
 .aclr((!RST) || (!sync_found)),	// check this
 .clock(DCLK_IN),
 .data({byte_index,fifo_input}),
-.rdreq(fifo_rdreq),		
+.rdreq(RD_REQ),		
 .wrreq(dvalid_out && sync_found && (!(psync_out && NM_or_HEM))),	// in HEM syncbyte should be skipped, but in NM we put CRC-8 of previous UP instead
 
-.empty(empty),
+.empty(EMPTY),
 .q({BYTE_INDEX,DATA_OUT})
 );
-wire empty;
-wire fifo_rdreq = (!empty) && RD_REQ;	// check this
-
-always@(posedge DCLK_IN or negedge RST)
-begin
-if(!RST)
-	ENA_OUT <= 0;
-else
-	ENA_OUT <= fifo_rdreq;
-end
 
 reg crc_8_ena;
 reg crc_8_init;

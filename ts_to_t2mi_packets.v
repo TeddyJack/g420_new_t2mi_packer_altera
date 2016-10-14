@@ -6,7 +6,7 @@ input RST,
 input [7:0] DATA,
 input [7:0] BYTE_INDEX,
 input SYNC_FOUND,
-input ENA_IN,
+input EMPTY,
 output reg RD_REQ,
 
 input [7:0] plp_id,
@@ -23,13 +23,15 @@ input [26:0] T_sf_ssu,
 output reg SHIFT_L1,
 input [7:0] L1_current_byte,
 
-output reg [7:0] DATA_OUT,
+output [7:0] DATA_OUT,
 output [7:0] POINTER,
 output reg ENA_OUT,
 
 output [3:0] state_mon
 );
 assign state_mon = state;
+
+assign DATA_OUT = (state == insert_up) ? DATA : data_out;
 
 // parameters that depend on k_bch
 wire [12:0] k_bch_bytes = k_bch[15:3];
@@ -70,6 +72,7 @@ reg [7:0] frame_idx;							// t2 frame counter
 reg [3:0] superframe_idx;					// superframe counter;
 reg [9:0] bb_frame_count;
 reg [26:0] subseconds_reg;
+reg [7:0] data_out;
 
 reg [1:0] current_t2mi_packet_type;
 parameter [1:0] type_bb_frame		= 2'h0;
@@ -93,7 +96,7 @@ always@(posedge CLK or negedge RST)
 begin
 if(!RST)
 	begin
-	DATA_OUT <= 0;
+	data_out <= 0;
 	local_counter <= 0;
 	crc_8_ena <= 0;
 	crc_8_init <= 0;
@@ -127,22 +130,22 @@ else
 				ENA_OUT <= 1;
 				crc_32_init <= 0;
 				case(current_t2mi_packet_type)
-				type_bb_frame:		DATA_OUT <= 8'h00;	// packet type
-				type_timestamp:	DATA_OUT <= 8'h20;
-				type_l1:				DATA_OUT <= 8'h10;
+				type_bb_frame:		data_out <= 8'h00;	// packet type
+				type_timestamp:	data_out <= 8'h20;
+				type_l1:				data_out <= 8'h10;
 				endcase
 				end
-			1:	DATA_OUT <= packet_count;					// packet count
+			1:	data_out <= packet_count;					// packet count
 			2:	begin
-				DATA_OUT[7:4] <= superframe_idx;			// superframe idx
-				DATA_OUT[3:0] <= 0;							// rfu
+				data_out[7:4] <= superframe_idx;			// superframe idx
+				data_out[3:0] <= 0;							// rfu
 				end
 			3:	begin
-				DATA_OUT[7:3] <= 0;							// rfu
-				DATA_OUT[2:0] <= t2mi_stream_id;			// t2mi stream id
+				data_out[7:3] <= 0;							// rfu
+				data_out[2:0] <= t2mi_stream_id;			// t2mi stream id
 				end
-			4:	DATA_OUT <= payload_len[15:8];			// payload len
-			5: DATA_OUT <= payload_len[7:0];
+			4:	data_out <= payload_len[15:8];			// payload len
+			5: data_out <= payload_len[7:0];
 			endcase
 			end
 		else
@@ -164,15 +167,12 @@ else
 			case(local_counter)
 			0:	begin
 				ENA_OUT <= 1;
-				//DATA_OUT <= frame_idx;						// frame idx
-				DATA_OUT <= 8'hAA;	// testing
+				data_out <= frame_idx;						// frame idx
 				end
-			1: //DATA_OUT <= plp_id;							// plp_id
-				DATA_OUT <= 8'hBB;	// testing
+			1: data_out <= plp_id;							// plp_id
 			2: begin
-				//DATA_OUT[7] <= ~|bb_frame_count;		// interleaving frame start (if bb_frame_count == 0 then 1, else 0)
-				//DATA_OUT[6:0] <= 0;							// rfu
-				DATA_OUT <= 8'hCC;	// testing
+				data_out[7] <= ~|bb_frame_count;		// interleaving frame start (if bb_frame_count == 0 then 1, else 0)
+				data_out[6:0] <= 0;							// rfu
 				end
 			endcase
 			end
@@ -191,26 +191,26 @@ else
 			case(local_counter)
 			0:	begin										// MATYPE-1
 				ENA_OUT <= 1;
-				DATA_OUT[7:6]	<= 2'b11;			// input stream format: GFPS/GCS/GSE/TS
-				DATA_OUT[5]		<= 1'b1;				// (MIS/SIS) multiple/single input stream (referred to the global signal, not to each PLP)
-				DATA_OUT[4]		<= 1'b1;				// ACM/CCM (different/same coding and modulation parameters for each PLP)
-				DATA_OUT[3]		<= 1'b0;				// ISSY not-active/active. For single PLP, ISSY is not required
-				DATA_OUT[2]		<= 1'b0;				// null-packet deletion not-active/active
-				DATA_OUT[1:0]	<= 2'b0;				// rfu
+				data_out[7:6]	<= 2'b11;			// input stream format: GFPS/GCS/GSE/TS
+				data_out[5]		<= 1'b1;				// (MIS/SIS) multiple/single input stream (referred to the global signal, not to each PLP)
+				data_out[4]		<= 1'b1;				// ACM/CCM (different/same coding and modulation parameters for each PLP)
+				data_out[3]		<= 1'b0;				// ISSY not-active/active. For single PLP, ISSY is not required
+				data_out[2]		<= 1'b0;				// null-packet deletion not-active/active
+				data_out[1:0]	<= 2'b0;				// rfu
 				crc_8_ena <= 1;
 				end
-			1:	DATA_OUT <= 0;									// MATYPE-2, for detailed info visit [en_302755v010401p, page 27]
-			2:	DATA_OUT <= NM_or_HEM ? 8'h0 : upl[15:8];	// if HEM then issy_value[23:16], else UPL (user packet length in bits) msb
-			3: DATA_OUT <= NM_or_HEM ? 8'h0 : upl[7:0];	// if HEM then issy_value[15:8], else UPL lsb
-			4:	DATA_OUT <= dfl[15:8];						// DFL (data field length) msb
-			5:	DATA_OUT <= dfl[7:0];						// DFL lsb
-			6:	DATA_OUT <= NM_or_HEM ? 8'h0 : 8'h47;		// if HEM then issy_value[7:0], else sync byte
-			7:	DATA_OUT <= syncd[15:8];					// syncd
-			8:	DATA_OUT <= syncd[7:0];
+			1:	data_out <= 0;									// MATYPE-2, for detailed info visit [en_302755v010401p, page 27]
+			2:	data_out <= NM_or_HEM ? 8'h0 : upl[15:8];	// if HEM then issy_value[23:16], else UPL (user packet length in bits) msb
+			3: data_out <= NM_or_HEM ? 8'h0 : upl[7:0];	// if HEM then issy_value[15:8], else UPL lsb
+			4:	data_out <= dfl[15:8];						// DFL (data field length) msb
+			5:	data_out <= dfl[7:0];						// DFL lsb
+			6:	data_out <= NM_or_HEM ? 8'h0 : 8'h47;		// if HEM then issy_value[7:0], else sync byte
+			7:	data_out <= syncd[15:8];					// syncd
+			8:	data_out <= syncd[7:0];
 			9:	begin
 				crc_8_ena <= 0;
 				crc_8_init <= 1;
-				DATA_OUT <= crc_8 ^ NM_or_HEM;	// CRC-8 xor MODE	// CRC module works on negedge to calculate CRC on time without delays. Be careful with that
+				data_out <= crc_8 ^ NM_or_HEM;	// CRC-8 xor MODE	// CRC module works on negedge to calculate CRC on time without delays. Be careful with that
 				end
 			endcase
 			end
@@ -219,28 +219,28 @@ else
 			local_counter <= 0;
 			ENA_OUT <= 0;
 			state <= insert_up;
-			RD_REQ <= 1;
 			ENA_OUT <= 0;
 			crc_8_init <= 0;
 			end
 		end
 	insert_up:
 		begin
-		if(payload_byte_counter < dfl_bytes)
+		ENA_OUT <= RD_REQ && (!EMPTY);
+		if(payload_byte_counter < (dfl_bytes + 1'b1))	// due to FIFO delay, this counter counts from 2 to (dfl + 1)
 			begin
-			ENA_OUT <= ENA_IN;
-			if(ENA_IN)
+			if(!EMPTY)
 				begin
 				payload_byte_counter <= payload_byte_counter + 1'b1;
-				DATA_OUT <= DATA;
+				if(payload_byte_counter < dfl_bytes)
+					RD_REQ <= !EMPTY;
+				else
+					RD_REQ <= 0;
 				end
 			end
 		else
 			begin
 			payload_byte_counter <= 0;
-			ENA_OUT <= 0;
 			state <= insert_crc_32_of_t2mi_packet;
-			RD_REQ <= 0;
 			end
 		end
 	insert_timestamp:
@@ -251,22 +251,22 @@ else
 			case(local_counter)
 			0:	begin
 				ENA_OUT <= 1;
-				DATA_OUT[7:4] <= 0;				// rfu
-				DATA_OUT[3:0] <= bandwidth;
+				data_out[7:4] <= 0;				// rfu
+				data_out[3:0] <= bandwidth;
 				end
-			1: DATA_OUT <= seconds_since_2000[39:32];
-			2: DATA_OUT <= seconds_since_2000[31:24];
-			3: DATA_OUT <= seconds_since_2000[23:16];
-			4: DATA_OUT <= seconds_since_2000[15:8];
-			5: DATA_OUT <= seconds_since_2000[7:0];
-			6: DATA_OUT <= subseconds[26:19];
-			7: DATA_OUT <= subseconds[18:11];
-			8: DATA_OUT <= subseconds[10:3];
+			1: data_out <= seconds_since_2000[39:32];
+			2: data_out <= seconds_since_2000[31:24];
+			3: data_out <= seconds_since_2000[23:16];
+			4: data_out <= seconds_since_2000[15:8];
+			5: data_out <= seconds_since_2000[7:0];
+			6: data_out <= subseconds[26:19];
+			7: data_out <= subseconds[18:11];
+			8: data_out <= subseconds[10:3];
 			9: begin
-				DATA_OUT[7:5] <= subseconds[2:0];
-				DATA_OUT[4:0] <= utco[12:8];
+				data_out[7:5] <= subseconds[2:0];
+				data_out[4:0] <= utco[12:8];
 				end
-			10:DATA_OUT <= utco[7:0];
+			10:data_out <= utco[7:0];
 			endcase
 			end
 		else
@@ -284,11 +284,11 @@ else
 			case(local_counter)
 			0:	begin
 				ENA_OUT <= 1;
-				DATA_OUT <= frame_idx;		// frame idx
+				data_out <= frame_idx;		// frame idx
 				end
 			1: begin
-				DATA_OUT[7:6] <= 0;			// freq source: 0 = L1 frequency field; 1 = individual adressing function; 3 = manually set at modulator
-				DATA_OUT[5:0] <= 0;			// rfu
+				data_out[7:6] <= 0;			// freq source: 0 = L1 frequency field; 1 = individual adressing function; 3 = manually set at modulator
+				data_out[5:0] <= 0;			// rfu
 				end
 			endcase
 			end
@@ -306,9 +306,9 @@ else
 			begin
 			payload_byte_counter <= payload_byte_counter + 1'b1;
 			if(payload_byte_counter == 16'd49)		// because l1_signalling[49] is frame idx
-				DATA_OUT <= frame_idx;
+				data_out <= frame_idx;
 			else
-				DATA_OUT <= L1_current_byte;
+				data_out <= L1_current_byte;
 			//SHIFT_L1 <= 1;	// shift is too late, so it was moved 1 step before. in no better idea, delete this commented line
 			ENA_OUT <= 1;
 			if(payload_byte_counter == (`L1_LEN_BYTES - 1'b1))
@@ -335,7 +335,7 @@ else
 		if(local_counter < 4)
 			begin
 			local_counter <= local_counter + 1'b1;
-			DATA_OUT <= crc_32_array[local_counter];
+			data_out <= crc_32_array[local_counter];
 			ENA_OUT <= 1;
 			end
 		else

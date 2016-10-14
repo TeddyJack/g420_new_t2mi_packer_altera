@@ -50,18 +50,18 @@ input_ts_prepare input_ts_prepare(
 .DATA_IN(TS_DATA_IN),
 .DCLK_IN(TS_DCLK_IN),
 .DVALID_IN(TS_DVALID_IN),
-.RD_REQ(rd_req),
+.RD_REQ(rd_req_in),
 .NM_or_HEM(NM_or_HEM),
 
 .DATA_OUT(data_out),
 .BYTE_INDEX(byte_index),
 .SYNC_FOUND(sync_found),
-.ENA_OUT(ena_out)
+.EMPTY(empty_in)
 );
 wire [7:0] data_out;
 wire [7:0] byte_index;
 wire sync_found;
-wire ena_out;
+wire empty_in;
 
 ts_to_t2mi_packets ts_to_t2mi_packets(
 .CLK(TS_DCLK_IN),
@@ -69,7 +69,7 @@ ts_to_t2mi_packets ts_to_t2mi_packets(
 .DATA(data_out),
 .BYTE_INDEX(byte_index),
 .SYNC_FOUND(sync_found),
-.ENA_IN(ena_out),
+.EMPTY(empty_in),
 
 .SHIFT_L1(l1_shift),
 .L1_current_byte(l1_data_out),
@@ -85,12 +85,12 @@ ts_to_t2mi_packets ts_to_t2mi_packets(
 .bandwidth(bandwidth),
 .T_sf_ssu(T_sf_ssu),
 
-.RD_REQ(rd_req),
+.RD_REQ(rd_req_in),
 .DATA_OUT(t2mi_packets),
 .ENA_OUT(t2mi_packets_ena),
 .POINTER(pointer)
 );
-wire rd_req;
+wire rd_req_in;
 wire l1_shift;
 wire [7:0] t2mi_packets;
 wire t2mi_packets_ena;
@@ -100,31 +100,21 @@ output_fifo output_fifo(
 .aclr(!reset),
 .clock(TS_DCLK_IN),
 .data({pointer,t2mi_packets}),
-.rdreq(fifo_rdreq),
+.rdreq(rd_req_out),
 .wrreq(t2mi_packets_ena),
-.empty(fifo_empty),
+.empty(empty_out),
 .q({pointer_out,t2mi_packets_out})
 );
-wire fifo_empty;
-wire fifo_rdreq = !fifo_empty && rd_req_out;
+wire empty_out;
 wire [7:0] pointer_out;
 wire [7:0] t2mi_packets_out;
-
-reg fifo_q_ena;
-always@(posedge TS_DCLK_IN or negedge reset)
-begin
-if(!reset)
-	fifo_q_ena <= 0;
-else
-	fifo_q_ena <= fifo_rdreq;
-end
 
 t2mi_over_ts t2mi_over_ts(
 .CLK(TS_DCLK_IN),
 .RST(reset),
 .DATA_IN(t2mi_packets_out),
 .POINTER(pointer_out),
-.ENA_IN(fifo_q_ena),
+.EMPTY(empty_out),
 .START(sync_found),
 
 .t2mi_pid(t2mi_pid),

@@ -36,11 +36,11 @@ t2mi_packer t2mi_packer(
 
 // timestamp
 .bandwidth(4'h4),			// 0 = 1.7 MHz, 1 = 5 MHz, 2 = 6 MHz, 3 = 7 MHz, 4 = 8 MHz, 5 = 10 MHz
-.timestamp_type(2'h1),	// 0 = null, 1 = relative, 2 = absolute
+.timestamp_type(2'h0),	// 0 = null, 1 = relative, 2 = absolute
 .T_sf_ssu(27'h0),			// period of superframe in subsecond unit
 // other
 .t2mi_pid(13'd4096),
-.t2mi_stream_id(3'd6),
+.t2mi_stream_id(3'd0),
 
 .T2MI_DATA_OUT(DATA_OUT),
 .T2MI_DCLK_OUT(DCLK_OUT),
