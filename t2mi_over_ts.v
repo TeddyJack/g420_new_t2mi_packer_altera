@@ -121,12 +121,14 @@ else
 				begin
 				payload_counter <= payload_counter + 1'b1;
 				DATA_OUT <= DATA_IN;
+				if(payload_counter == (payload_len - 1'b1))
+					RD_REQ <= 0;		// moved here from the next step
 				end
 			end
 		else
 			begin
 			payload_counter <= 0;
-			RD_REQ <= 0;
+			//RD_REQ <= 0;	// moved 1 step back for no errors
 			ENA_OUT <= 0;
 			state <= insert_header;
 			continuity_counter <= continuity_counter + 1'b1;

@@ -1,34 +1,23 @@
 module t2mi_packer_project(
 input BOARD_CLK,
 input BUTTON,
+
+input [7:0] DATA,
+input DCLK,
+input RDY,
+input SC_D,
+
 output [7:0] DATA_OUT,
 output DCLK_OUT,
-output DVALID_OUT,
+output RDY_OUT,
+output SC_D_OUT,
 output PSYNC_OUT
 );
-
-pll_for_ts_gen pll_1(
-.inclk0(BOARD_CLK),
-.c0(clk_27)
-);
-wire clk_27;
-
-ts_generator ts_gen_1(
-.CLK_IN(clk_27),
-.RST(BUTTON),
-.PID(13'h044C),
-.kBpS(18'd3200),
-
-.DATA(data),
-.DCLK(dclk),
-.DVALID(dvalid)
-);
-wire [7:0] data;
-wire dclk;
-wire dvalid;
+assign RDY_OUT = !dvalid_out;
+assign SC_D_OUT = !dvalid_out;
 
 L1_giver L1_giver(
-.CLK(clk_27),
+.CLK(DCLK),
 .RST(BUTTON),
 .L1_DATA(l1_data),
 .L1_LOAD(l1_load)
@@ -38,9 +27,9 @@ wire l1_load;
 
 t2mi_packer t2mi_packer(
 .RST(BUTTON),
-.TS_DATA_IN(data),
-.TS_DCLK_IN(dclk),
-.TS_DVALID_IN(dvalid),
+.TS_DATA_IN(DATA),
+.TS_DCLK_IN(DCLK),
+.TS_DVALID_IN(!(SC_D || RDY)),
 
 .L1_DATA_IN(l1_data),
 .L1_LOAD(l1_load),
@@ -55,8 +44,9 @@ t2mi_packer t2mi_packer(
 
 .T2MI_DATA_OUT(DATA_OUT),
 .T2MI_DCLK_OUT(DCLK_OUT),
-.T2MI_DVALID_OUT(DVALID_OUT),
+.T2MI_DVALID_OUT(dvalid_out),
 .T2MI_PSYNC_OUT(PSYNC_OUT)
 );
+wire dvalid_out;
 
 endmodule

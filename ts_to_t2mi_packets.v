@@ -64,7 +64,7 @@ reg crc_8_init;
 reg crc_32_init;
 reg [3:0] local_counter;
 reg [12:0] payload_byte_counter;
-reg [12:0] t2mi_byte_count;				// byte counter in t2mi packet
+reg [12:0] t2mi_byte_count;				// byte counter in t2mi packet	// commented cause moved to ports for testing
 reg [7:0] packet_count;						// t2mi packet counter
 reg [7:0] frame_idx;							// t2 frame counter
 reg [3:0] superframe_idx;					// superframe counter;
@@ -152,7 +152,7 @@ else
 			case(current_t2mi_packet_type)
 			type_bb_frame:			state <= insert_bb_header_1;
 			type_timestamp:		state <= insert_timestamp;
-			type_l1:	state <= insert_L1_header;
+			type_l1:					state <= insert_L1_header;
 			endcase
 			end
 		end
@@ -164,12 +164,15 @@ else
 			case(local_counter)
 			0:	begin
 				ENA_OUT <= 1;
-				DATA_OUT <= frame_idx;						// frame idx
+				//DATA_OUT <= frame_idx;						// frame idx
+				DATA_OUT <= 8'hAA;	// testing
 				end
-			1: DATA_OUT <= plp_id;							// plp_id
+			1: //DATA_OUT <= plp_id;							// plp_id
+				DATA_OUT <= 8'hBB;	// testing
 			2: begin
-				DATA_OUT[7] <= ~|bb_frame_count;		// interleaving frame start (if bb_frame_count == 0 then 1, else 0)
-				DATA_OUT[6:0] <= 0;							// rfu
+				//DATA_OUT[7] <= ~|bb_frame_count;		// interleaving frame start (if bb_frame_count == 0 then 1, else 0)
+				//DATA_OUT[6:0] <= 0;							// rfu
+				DATA_OUT <= 8'hCC;	// testing
 				end
 			endcase
 			end
@@ -306,7 +309,7 @@ else
 				DATA_OUT <= frame_idx;
 			else
 				DATA_OUT <= L1_current_byte;
-			//SHIFT_L1 <= 1;
+			//SHIFT_L1 <= 1;	// shift is too late, so it was moved 1 step before. in no better idea, delete this commented line
 			ENA_OUT <= 1;
 			if(payload_byte_counter == (`L1_LEN_BYTES - 1'b1))
 				SHIFT_L1 <= 0;
@@ -315,7 +318,7 @@ else
 			begin
 			payload_byte_counter <= 0;
 			state <= insert_crc_32_of_t2mi_packet;
-			//SHIFT_L1 <= 0;
+			//SHIFT_L1 <= 0;	// shift is too late, so it was moved 1 step before. in no better idea, delete this commented line
 			ENA_OUT <= 0;
 			if(frame_idx < num_t2_frames)
 				frame_idx <= frame_idx + 1'b1;
