@@ -32,8 +32,9 @@ wire dvalid_out;
 wire [7:0] byte_index;
 
 wire [7:0] fifo_input = ((!NM_or_HEM) && crc_8_init) ? crc_8_reg : data_out;
-input_ts_fifo input_ts_fifo(		// check fifo size. may be very big or small
-.aclr((!RST) || (!sync_found)),	// check this
+// It was found while testing: when input TS bitrate is 40 Mbps, FIFO is filled with (<= 25) words
+input_ts_fifo input_ts_fifo(
+.aclr((!RST) || (!sync_found)),
 .clock(DCLK_IN),
 .data({byte_index,fifo_input}),
 .rdreq(RD_REQ),		

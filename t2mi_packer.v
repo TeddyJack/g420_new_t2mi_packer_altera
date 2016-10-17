@@ -96,6 +96,7 @@ wire [7:0] t2mi_packets;
 wire t2mi_packets_ena;
 wire [7:0] pointer;
 
+// It was found while testing: if only TS header (without null-packets, SDTs, PMTs) is inserted, output FIFO is filled with (<= 8) words
 output_fifo output_fifo(
 .aclr(!reset),
 .clock(TS_DCLK_IN),
