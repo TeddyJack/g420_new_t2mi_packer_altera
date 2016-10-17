@@ -320,7 +320,7 @@ else
 			state <= insert_crc_32_of_t2mi_packet;
 			//SHIFT_L1 <= 0;	// shift is too late, so it was moved 1 step before. in no better idea, delete this commented line
 			ENA_OUT <= 0;
-			if(frame_idx < num_t2_frames)
+			if(frame_idx < (num_t2_frames - 1'b1))
 				frame_idx <= frame_idx + 1'b1;
 			else
 				begin
