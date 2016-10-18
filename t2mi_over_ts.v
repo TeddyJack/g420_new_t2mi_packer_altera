@@ -16,7 +16,7 @@ output [3:0] state_mon
 );
 assign state_mon = state;
 
-assign DATA_OUT = (state == insert_payload) ? payload_out : header_out;
+assign DATA_OUT = (state == insert_payload) ? payload_out : ((state == insert_table) ? table_out : header_out);
 
 reg [3:0] continuity_counter;
 reg [3:0] local_counter;
@@ -24,12 +24,14 @@ reg [7:0] payload_counter;
 reg [7:0] payload_len;
 reg [7:0] header_out;
 reg rd_req;
+reg table_sent;
 
 reg [3:0] state;
 parameter [3:0] wait_for_start		= 4'h0;
 parameter [3:0] insert_header			= 4'h1;
 parameter [3:0] insert_af_or_pointer= 4'h2;
 parameter [3:0] insert_payload		= 4'h3;
+parameter [3:0] insert_table			= 4'h4;
 
 always@(posedge CLK or negedge RST)
 begin
@@ -44,6 +46,7 @@ if(!RST)
 	payload_len <= 0;
 	header_out <= 0;
 	payload_counter <= 0;
+	table_sent <= 0;
 	end
 else
 	case(state)
@@ -59,6 +62,7 @@ else
 			local_counter <= local_counter + 1'b1;
 			case(local_counter)
 			0:	begin
+				table_sent <= 0;
 				header_out <= 8'h47;
 				ENA_OUT <= 1;
 				PSYNC_OUT <= 1;
@@ -115,7 +119,7 @@ else
 	insert_payload:
 		begin
 		ENA_OUT <= rd_req && (!empty);
-		if(payload_counter < (payload_len + 1'b1))	// due to FIFO delay, this counter counts from 2 to (payload_len + 1)
+		if(payload_counter < (payload_len + 1'b1))	// due to FIFO delay(), this counter counts from 2 to (payload_len + 1)
 			begin
 			if(!empty)
 				begin
@@ -129,14 +133,38 @@ else
 		else
 			begin
 			payload_counter <= 0;
-			state <= insert_header;
+			if(table_ready)
+				state <= insert_table;
+			else
+				state <= insert_header;
 			continuity_counter <= continuity_counter + 1'b1;
+			end
+		end
+	insert_table:
+		begin
+		if(payload_counter < 188)
+			begin
+			if(payload_counter == 0)
+				begin
+				ENA_OUT <= 1;
+				PSYNC_OUT <= 1;
+				end
+			else if(payload_counter == 1)
+				PSYNC_OUT <= 0;
+			payload_counter <= payload_counter + 1'b1;
+			end
+		else
+			begin
+			ENA_OUT <= 0;
+			payload_counter <= 0;
+			table_sent <= 1;
+			state <= insert_header;
 			end
 		end
 	endcase
 end
 
-// It was found while testing: if only TS header (without null-packets, SDTs, PMTs) is inserted, output FIFO is filled with (<= 8) words
+// It was found while testing: when (bitrate = 54 Mbps) and (PAT, PMT and SDT are inserted), FIFO is filled with (<= 72) words 
 output_fifo output_fifo(
 .aclr(!RST),
 .clock(CLK),
@@ -149,5 +177,16 @@ output_fifo output_fifo(
 wire empty;
 wire [7:0] pointer_out;
 wire [7:0] payload_out;
+
+insert_tables insert_tables(
+.RST(RST),
+.CLK(CLK),
+.TABLE_READY(table_ready),
+.TABLE_SENT(table_sent),
+.PAYLOAD_CNT(payload_counter),
+.DATA_OUT(table_out)
+);
+wire table_ready;
+wire [7:0] table_out;
 
 endmodule
