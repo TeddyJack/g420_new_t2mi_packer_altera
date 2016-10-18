@@ -16,7 +16,6 @@ output reg [7:0] num_t2_frames,
 output [15:0] k_bch
 );
 
-//initial $readmemh("l1_signalling_init.txt", l1_signalling, 0, 66);
 reg [7:0] l1_signalling_packet [66:0];
 assign L1_DATA_OUT = l1_signalling_packet[0];
 

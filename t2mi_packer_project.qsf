@@ -76,10 +76,6 @@ set_global_assignment -name VERILOG_FILE L1_giver.v
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to BOARD_CLK
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to BUTTON
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DATA[7]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to altera_reserved_tms
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to altera_reserved_tdo
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to altera_reserved_tdi
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to altera_reserved_tck
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SC_D
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to RDY
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to PSYNC_OUT

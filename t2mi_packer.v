@@ -96,35 +96,19 @@ wire [7:0] t2mi_packets;
 wire t2mi_packets_ena;
 wire [7:0] pointer;
 
-// It was found while testing: if only TS header (without null-packets, SDTs, PMTs) is inserted, output FIFO is filled with (<= 8) words
-output_fifo output_fifo(
-.aclr(!reset),
-.clock(TS_DCLK_IN),
-.data({pointer,t2mi_packets}),
-.rdreq(rd_req_out),
-.wrreq(t2mi_packets_ena),
-.empty(empty_out),
-.q({pointer_out,t2mi_packets_out})
-);
-wire empty_out;
-wire [7:0] pointer_out;
-wire [7:0] t2mi_packets_out;
-
 t2mi_over_ts t2mi_over_ts(
 .CLK(TS_DCLK_IN),
 .RST(reset),
-.DATA_IN(t2mi_packets_out),
-.POINTER(pointer_out),
-.EMPTY(empty_out),
 .START(sync_found),
+.ENA_IN(t2mi_packets_ena),
+.DATA_IN(t2mi_packets),
+.POINTER_IN(pointer),
 
 .t2mi_pid(t2mi_pid),
 
-.RD_REQ(rd_req_out),
 .DATA_OUT(T2MI_DATA_OUT),
 .ENA_OUT(T2MI_DVALID_OUT),
 .PSYNC_OUT(T2MI_PSYNC_OUT)
 );
-wire rd_req_out;
 
 endmodule
