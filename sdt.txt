@@ -3,7 +3,7 @@ F0		// 1)		[7]	section syntax indicator
 		//			[6]	rfu
 		//			[5:4]	reserved
 		//			[3:0] section len[11:8]
-33		// 2)				section len[7:0]
+31		// 2)				section len[7:0]
 00		// 3)				transport stream id[15:8]
 01		// 4)				transport stream id[7:0]
 C1		// 5)		[7:6]	reserved
@@ -22,9 +22,9 @@ FC		// 13)	[7:2]	rfu
 80		// 14)	[7:5]	running status
 		//			[4]	free ca mode
 		//			[3:0]	descriptors loop len[11:8]
-22		//	15)			descriptors loop len[7:0]
+20		//	15)			descriptors loop len[7:0]
 48		// 16)			descriptor tag
-20		// 17)			descriptor len
+1E		// 17)			descriptor len
 01		// 18)			service type
 05		// 19)			service provider name len
 47		// 20)			service provider name[0]

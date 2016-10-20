@@ -1,6 +1,6 @@
 00		// 0)				table id
 B0		// 1)		[7]	section syntax indicator
-		// 		[6]	0
+		// 		[6]	rfu
 		//			[5:4]	reserved
 		//			[3:0]	section len[11:8]
 0D		// 2)				section len[7:0]

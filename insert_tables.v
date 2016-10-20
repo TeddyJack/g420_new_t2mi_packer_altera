@@ -31,6 +31,7 @@ parameter [2:0] insert_zeros	= 3'h4;
 
 reg [7:0] counter;
 reg crc_32_init;
+reg [7:0] current_table_len;
 
 always@(posedge CLK or negedge RST)
 begin
@@ -42,6 +43,7 @@ if(!RST)
 	TABLE_SENT <= 0;
 	ENA_OUT <= 0;
 	DATA_OUT <= 0;
+	current_table_len <= 0;
 	end
 else
 	case(state)
@@ -75,6 +77,7 @@ else
 			begin
 			ENA_OUT <= 0;
 			state <= insert_table;
+			current_table_len <= 8'hFF;	// put here maximum number, until we read the section len
 			counter <= 0;
 			end
 		end
@@ -84,7 +87,9 @@ else
 			begin
 			ENA_OUT <= 1;
 			counter <= counter + 1'b1;
-			case(current_table)
+			if(counter == 3)
+				current_table_len <= DATA_OUT - 1'b1;	// section len is at table[2], but we read it 1 step later to avoid additional "cases"
+			case(current_table)								// current_table_len is 8 bits-wide, but full section len is 13 bits-wide, so we take the lsb. enough for short sections
 				type_pat:	case(counter)
 								10:		begin
 											DATA_OUT[7:5] <= 0;
@@ -158,7 +163,6 @@ reg [1:0] current_table;
 parameter [1:0] type_pat	= 2'h0;
 parameter [1:0] type_pmt	= 2'h1;
 parameter [1:0] type_sdt	= 2'h2;
-reg [7:0] current_table_len;
 reg [13:0] current_pid;
 reg [3:0] current_cont_counter;
 always@(posedge CLK or negedge RST)
@@ -166,7 +170,6 @@ begin
 if(!RST)
 	begin
 	current_table <= type_pat;
-	current_table_len <= 0;
 	current_pid <= 0;
 	current_cont_counter <= 0;
 	end
@@ -175,21 +178,18 @@ else
 	if(pat_ready)
 		begin
 		current_table <= type_pat;
-		current_table_len <= 12;
 		current_pid <= 13'h0;
 		current_cont_counter <= cont_counter_pat;
 		end
 	else if(pmt_ready)
 		begin
 		current_table <= type_pmt;
-		current_table_len <= 17;
 		current_pid <= pmt_pid;
 		current_cont_counter <= cont_counter_pmt;
 		end
 	else if(sdt_ready)
 		begin
 		current_table <= type_sdt;
-		current_table_len <= 48;
 		current_pid <= 13'h11;
 		current_cont_counter <= cont_counter_sdt;
 		end
