@@ -176,6 +176,7 @@ insert_tables insert_tables(
 .DATA_OUT(table_out),
 .ENA_OUT(table_ena),
 .pmt_pid(pmt_pid),
+.t2mi_pid(t2mi_pid),
 .START(start_table)
 );
 wire table_ready;

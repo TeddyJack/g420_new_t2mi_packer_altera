@@ -8,6 +8,7 @@ output reg TABLE_SENT,
 output reg [7:0] DATA_OUT,
 output reg ENA_OUT,
 input [12:0] pmt_pid,
+input [12:0] t2mi_pid,
 input START,
 output [2:0] state_mon
 );
@@ -98,7 +99,14 @@ else
 								11:		DATA_OUT <= pmt_pid[7:0];
 								default:	DATA_OUT <= pat[counter];
 								endcase
-				type_pmt:	DATA_OUT <= pmt[counter];
+				type_pmt:	case(counter)
+								8:			begin
+											DATA_OUT[7:5] <= 0;
+											DATA_OUT[4:0] <= t2mi_pid[12:8];
+											end
+								9:			DATA_OUT <= t2mi_pid[7:0];
+								default:	DATA_OUT <= pmt[counter];
+								endcase
 				type_sdt:	DATA_OUT <= sdt[counter];
 			endcase
 			end
