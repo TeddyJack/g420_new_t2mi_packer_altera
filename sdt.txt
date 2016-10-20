@@ -1,193 +1,57 @@
-47		// 0)
-40		// 1)
-11		// 2)
-10		// 3)
-00		// 4)				pointer field
-42		// 5)				table id
-F0		// 6)		[7]	section syntax indicator
+42		// 0)				table id
+F0		// 1)		[7]	section syntax indicator
 		//			[6]	rfu
 		//			[5:4]	reserved
 		//			[3:0] section len[11:8]
-33		// 7)				section len[7:0]
-00		// 8)				transport stream id[15:8]
-01		// 9)				transport stream id[7:0]
-C1		// 10)	[7:6]	reserved
+33		// 2)				section len[7:0]
+00		// 3)				transport stream id[15:8]
+01		// 4)				transport stream id[7:0]
+C1		// 5)		[7:6]	reserved
 		//			[5:1]	version number
 		//			[0]	current next indicator
-00		// 11)			section number
-00		// 12)			last section number
-00		// 13)			original network id[15:8]
-01		// 14)			original network id[7:0]
-FF		// 15)			rfu
-00		// 16)			service id[15:8]
-01		// 17)			service id[7:0]
-FC		// 18)	[7:2]	rfu
+00		// 6)				section number
+00		// 7)				last section number
+00		// 8)				original network id[15:8]
+01		// 9)				original network id[7:0]
+FF		// 10)			rfu
+00		// 11)			service id[15:8]
+01		// 12)			service id[7:0]
+FC		// 13)	[7:2]	rfu
 		//			[1]	eit schedule flag
 		//			[0]	eit present following flag
-80		// 19)	[7:5]	running status
+80		// 14)	[7:5]	running status
 		//			[4]	free ca mode
 		//			[3:0]	descriptors loop len[11:8]
-22		//	20)			descriptors loop len[7:0]
-48		// 21)			descriptor tag
-20		// 22)			descriptor len
-01		// 23)			service type
-05		// 24)			service provider name len
-47		// 25)			service provider name[0]
-2D		// 26)			service provider name[1]
-34		// 27)			service provider name[2]
-32		// 28)			service provider name[3]
-30		// 29)			service provider name[4]
-16		// 30)			service name len
-54		// 31)			service name len[0]
-32		// 32)			service name len[1]
-2D		// 33)			service name len[2]
-4D		// 34)			service name len[3]
-49		// 35)			service name len[4]
-20		// 36)			service name len[5]
-72		// 37)			service name len[6]
-65		// 38)			service name len[7]
-66		// 39)			service name len[8]
-65		// 40)			service name len[9]
-72		// 41)			service name len[10]
-65		// 42)			service name len[11]
-6E		// 43)			service name len[12]
-63		// 44)			service name len[13]
-65		// 45)			service name len[14]
-20		// 46)			service name len[15]
-73		// 47)			service name len[16]
-74		// 48)			service name len[17]
-72		// 49)			service name len[18]
-65		// 50)			service name len[19]
-61		// 51)			service name len[20]
-6D		// 52)			service name len[21]
-0B		//	53)			CRC-32[31:24]
-E8		//	54)			CRC-32[23:16]
-85		//	55)			CRC-32[15:8]
-1D		//	56)			CRC-32[7:0]
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
+22		//	15)			descriptors loop len[7:0]
+48		// 16)			descriptor tag
+20		// 17)			descriptor len
+01		// 18)			service type
+05		// 19)			service provider name len
+47		// 20)			service provider name[0]
+2D		// 21)			service provider name[1]
+34		// 22)			service provider name[2]
+32		// 23)			service provider name[3]
+30		// 24)			service provider name[4]
+16		// 25)			service name len
+54		// 26)			service name len[0]
+32		// 27)			service name len[1]
+2D		// 28)			service name len[2]
+4D		// 29)			service name len[3]
+49		// 30)			service name len[4]
+20		// 31)			service name len[5]
+72		// 32)			service name len[6]
+65		// 33)			service name len[7]
+66		// 34)			service name len[8]
+65		// 35)			service name len[9]
+72		// 36)			service name len[10]
+65		// 37)			service name len[11]
+6E		// 38)			service name len[12]
+63		// 39)			service name len[13]
+65		// 40)			service name len[14]
+20		// 41)			service name len[15]
+73		// 42)			service name len[16]
+74		// 43)			service name len[17]
+72		// 44)			service name len[18]
+65		// 45)			service name len[19]
+61		// 46)			service name len[20]
+6D		// 47)			service name len[21]

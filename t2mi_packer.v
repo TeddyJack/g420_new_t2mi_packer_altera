@@ -13,6 +13,7 @@ input [26:0] T_sf_ssu,			// period of superframe in subsecond unit
 // other
 input [12:0] t2mi_pid,
 input [2:0] t2mi_stream_id,
+input [12:0] pmt_pid,
 
 output [7:0] T2MI_DATA_OUT,
 output T2MI_DCLK_OUT,
@@ -105,6 +106,7 @@ t2mi_over_ts t2mi_over_ts(
 .POINTER_IN(pointer),
 
 .t2mi_pid(t2mi_pid),
+.pmt_pid(pmt_pid),
 
 .DATA_OUT(T2MI_DATA_OUT),
 .ENA_OUT(T2MI_DVALID_OUT),

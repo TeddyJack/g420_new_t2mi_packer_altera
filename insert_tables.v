@@ -4,67 +4,195 @@ module insert_tables(
 input RST,
 input CLK,
 output TABLE_READY,
-input TABLE_SENT,
-input [7:0] PAYLOAD_CNT,
-output reg [7:0] DATA_OUT
+output reg TABLE_SENT,
+output reg [7:0] DATA_OUT,
+output reg ENA_OUT,
+input [12:0] pmt_pid,
+input START,
+output [2:0] state_mon
 );
 
+assign state_mon = state;
 assign TABLE_READY = pat_ready || pmt_ready || sdt_ready;
 
-reg [7:0] pat [183:0];
-reg [7:0] pmt [183:0];
-reg [7:0] sdt [183:0];
-initial $readmemh("pat.txt", pat, 0, 183);
-initial $readmemh("pmt.txt", pmt, 0, 183);
-initial $readmemh("sdt.txt", sdt, 0, 183);
+reg [7:0] pat [11:0];
+reg [7:0] pmt [16:0];
+reg [7:0] sdt [47:0];
+initial $readmemh("pat.txt", pat, 0, 11);
+initial $readmemh("pmt.txt", pmt, 0, 16);
+initial $readmemh("sdt.txt", sdt, 0, 47);
+
+reg [2:0] state;
+parameter [2:0] idle				= 3'h0;
+parameter [2:0] insert_header	= 3'h1;
+parameter [2:0] insert_table	= 3'h2;
+parameter [2:0] insert_crc_32	= 3'h3;
+parameter [2:0] insert_zeros	= 3'h4;
+
+reg [7:0] counter;
+reg crc_32_init;
 
 always@(posedge CLK or negedge RST)
 begin
 if(!RST)
 	begin
+	state <= idle;
+	counter <= 0;
+	crc_32_init <= 0;
+	TABLE_SENT <= 0;
+	ENA_OUT <= 0;
 	DATA_OUT <= 0;
 	end
 else
-	begin
-	case(PAYLOAD_CNT)
-		3:	begin
-			DATA_OUT[7:6] <= 0;	// transport scrambling control
-			DATA_OUT[5:4] <= 2'b01;	// adaptation field control
-			case(current_table)
-			type_pat:	DATA_OUT[3:0] <= cont_counter_pat;
-			type_pmt:	DATA_OUT[3:0] <= cont_counter_pmt;
-			type_sdt:	DATA_OUT[3:0] <= cont_counter_sdt;
+	case(state)
+	idle:
+		begin
+		TABLE_SENT <= 0;
+		if(START)
+			state <= insert_header;
+		end
+	insert_header:
+		begin
+		if(counter < 5)
+			begin
+			ENA_OUT <= 1;
+			counter <= counter + 1'b1;
+			case(counter)
+			0:	DATA_OUT <= 8'h47;
+			1:	begin
+				DATA_OUT[7:5] <= 3'b010;	// transp err indic, payl start unit indic, transp priority
+				DATA_OUT[4:0] <= current_pid[12:8];
+				end
+			2:	DATA_OUT <= current_pid[7:0];
+			3:	begin
+				DATA_OUT[7:4] <= 4'b0001;	// transp scrambling control, AF control
+				DATA_OUT[3:0] <= current_cont_counter;
+				end
+			4:	DATA_OUT <= 0;	// pointer field
 			endcase
 			end
-		default:
+		else
+			begin
+			ENA_OUT <= 0;
+			state <= insert_table;
+			counter <= 0;
+			end
+		end
+	insert_table:
+		begin
+		if(counter < current_table_len)
+			begin
+			ENA_OUT <= 1;
+			counter <= counter + 1'b1;
 			case(current_table)
-			type_pat:	DATA_OUT <= pat[PAYLOAD_CNT];
-			type_pmt:	DATA_OUT <= pmt[PAYLOAD_CNT];
-			type_sdt:	DATA_OUT <= sdt[PAYLOAD_CNT];
+				type_pat:	case(counter)
+								10:		begin
+											DATA_OUT[7:5] <= 0;
+											DATA_OUT[4:0] <= pmt_pid[12:8];
+											end
+								11:		DATA_OUT <= pmt_pid[7:0];
+								default:	DATA_OUT <= pat[counter];
+								endcase
+				type_pmt:	DATA_OUT <= pmt[counter];
+				type_sdt:	DATA_OUT <= sdt[counter];
 			endcase
+			end
+		else
+			begin
+			ENA_OUT <= 0;
+			state <= insert_crc_32;
+			end
+		end
+	insert_crc_32:
+		begin
+		if(counter < (current_table_len + 3'd4))
+			begin
+			ENA_OUT <= 1;
+			DATA_OUT <= crc_32_array[counter - current_table_len];
+			counter <= counter + 1'b1;
+			end
+		else
+			begin
+			ENA_OUT <= 0;
+			state <= insert_zeros;
+			crc_32_init <= 1;
+			end
+		end
+	insert_zeros:
+		begin
+		crc_32_init <= 0;
+		if(counter < 183)
+			begin
+			counter <= counter + 1'b1;
+			ENA_OUT <= 1;
+			DATA_OUT <= 0;
+			end
+		else
+			begin
+			ENA_OUT <= 0;
+			counter <= 0;
+			state <= idle;
+			TABLE_SENT <= 1;
+			end
+		end
 	endcase
-	end
 end
+
+CRC_32 CRC_32(
+.CLK(CLK),
+.RST(RST),
+.ENA(ENA_OUT && (state == insert_table)),
+.INIT(crc_32_init),
+.D(DATA_OUT),
+
+.CRC(crc_32)
+);
+wire [31:0] crc_32;
+wire [7:0] crc_32_array [3:0];
+assign crc_32_array[0] = crc_32[31:24];
+assign crc_32_array[1] = crc_32[23:16];
+assign crc_32_array[2] = crc_32[15:8];
+assign crc_32_array[3] = crc_32[7:0];
 
 reg [1:0] current_table;
 parameter [1:0] type_pat	= 2'h0;
 parameter [1:0] type_pmt	= 2'h1;
 parameter [1:0] type_sdt	= 2'h2;
-
+reg [7:0] current_table_len;
+reg [13:0] current_pid;
+reg [3:0] current_cont_counter;
 always@(posedge CLK or negedge RST)
 begin
 if(!RST)
 	begin
 	current_table <= type_pat;
+	current_table_len <= 0;
+	current_pid <= 0;
+	current_cont_counter <= 0;
 	end
 else
 	begin
 	if(pat_ready)
+		begin
 		current_table <= type_pat;
+		current_table_len <= 12;
+		current_pid <= 13'h0;
+		current_cont_counter <= cont_counter_pat;
+		end
 	else if(pmt_ready)
+		begin
 		current_table <= type_pmt;
+		current_table_len <= 17;
+		current_pid <= pmt_pid;
+		current_cont_counter <= cont_counter_pmt;
+		end
 	else if(sdt_ready)
+		begin
 		current_table <= type_sdt;
+		current_table_len <= 48;
+		current_pid <= 13'h11;
+		current_cont_counter <= cont_counter_sdt;
+		end
 	end
 end
 
@@ -72,7 +200,6 @@ end
 reg [3:0] cont_counter_pat;
 reg [3:0] cont_counter_pmt;
 reg [3:0] cont_counter_sdt;
-
 always@(posedge CLK or negedge RST)
 begin
 if(!RST)
@@ -99,6 +226,7 @@ wire sdt_sent = (current_table == type_sdt) && TABLE_SENT;
 reg pat_ready;
 reg pmt_ready;
 reg sdt_ready;
+reg [2:0] ready;
 always@(posedge CLK or negedge RST)
 begin
 if(!RST)
@@ -149,6 +277,7 @@ else
 end
 
 wire pat_trigger = (pat_pmt_counter == 0);
+// next 2 lines are written this way to distribute table triggers equally inside the 0.5 s period
 wire pmt_trigger = (pat_pmt_counter == (cnt_limit_pat+1)/3);
 wire sdt_trigger = (pat_pmt_counter == (cnt_limit_pat+1)*2/3) && (sdt_eit_counter == 0);
 

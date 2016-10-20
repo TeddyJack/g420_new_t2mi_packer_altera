@@ -1,193 +1,26 @@
-47		// 0)
-40		// 1)
-70		// 2)
-10		// 3)
-00		// 4)				pointer field
-02		// 5)				table id
-B0		// 6)		[7]	section syntax indicator
+02		// 0)				table id
+B0		// 1)		[7]	section syntax indicator
 		//			[6]	0
 		//			[5:4]	reserved
 		//			[3:0] section len[11:8]
-12		// 7)				section len[7:0]
-00		// 8)				program number[15:8]
-01		// 9)				program number[7:0]
-C1		// 10)	[7:6]	reserved
+12		// 2)				section len[7:0]
+00		// 3)				program number[15:8]
+01		// 4)				program number[7:0]
+C1		// 5)		[7:6]	reserved
 		//			[5:1]	version number
 		//			[0]	current next indicator
-00		// 11)			section number
-00		// 12)				last section number
-FF		// 13)	[7:5]	reserved
-		//			[4:0] PCR PID[12:8]
-FF		// 14)			PCR PID[7:0];
-F0		// 15)	[7:4]	reserved
+00		// 6)				section number
+00		// 7)				last section number
+FF		// 8)		[7:5]	reserved
+		//			[4:0] PCR PID[12:8]: default value is 1FFF
+FF		// 9)				PCR PID[7:0]
+F0		// 10)	[7:4]	reserved
 		//			[3:0] program info len[11:8]
-00		// 16)			program info len[7:0]
-06		// 17)			stream type
-F0		// 18)	[7:5]	reserved
+00		// 11)			program info len[7:0]
+06		// 12)			stream type: 6 = PES containing private data
+F0		// 13)	[7:5]	reserved
 		//			[4:0]	elementary PID[12:8]
-00		// 19)			elementary PID[7:0]
-F0		// 20)	[7:4]	reserved
+00		// 14)			elementary PID[7:0]
+F0		// 15)	[7:4]	reserved
 		//			[3:0]	ES info len[11:8]
-00		// 21)			ES info len[7:0]
-41		// 22)			CRC-32[31:24]
-E0		// 23)			CRC-32[23:16]
-1B		// 24)			CRC-32[15:8]
-F0		// 25)			CRC-32[7:0]
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
-00
+00		// 16)			ES info len[7:0]

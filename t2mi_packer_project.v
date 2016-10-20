@@ -39,8 +39,9 @@ t2mi_packer t2mi_packer(
 .timestamp_type(2'h0),	// 0 = null, 1 = relative, 2 = absolute
 .T_sf_ssu(27'h0),			// period of superframe in subsecond unit
 // other
-.t2mi_pid(13'd4096),
+.t2mi_pid(13'h1000),
 .t2mi_stream_id(3'd0),
+.pmt_pid(13'h0088),
 
 .T2MI_DATA_OUT(DATA_OUT),
 .T2MI_DCLK_OUT(DCLK_OUT),

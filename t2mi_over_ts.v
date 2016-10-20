@@ -7,6 +7,7 @@ input [7:0] DATA_IN,
 input [7:0] POINTER_IN,
 
 input [12:0] t2mi_pid,
+input [12:0] pmt_pid,
 
 output [7:0] DATA_OUT,
 output reg ENA_OUT,
@@ -16,7 +17,7 @@ output [3:0] state_mon
 );
 assign state_mon = state;
 
-assign DATA_OUT = (state == insert_payload) ? payload_out : ((state == insert_table) ? table_out : header_out);
+assign DATA_OUT = (state == insert_payload) ? payload_out : header_out;
 
 reg [3:0] continuity_counter;
 reg [3:0] local_counter;
@@ -24,7 +25,7 @@ reg [7:0] payload_counter;
 reg [7:0] payload_len;
 reg [7:0] header_out;
 reg rd_req;
-reg table_sent;
+reg start_table;
 
 reg [3:0] state;
 parameter [3:0] wait_for_start		= 4'h0;
@@ -46,7 +47,7 @@ if(!RST)
 	payload_len <= 0;
 	header_out <= 0;
 	payload_counter <= 0;
-	table_sent <= 0;
+	start_table <= 0;
 	end
 else
 	case(state)
@@ -62,7 +63,6 @@ else
 			local_counter <= local_counter + 1'b1;
 			case(local_counter)
 			0:	begin
-				table_sent <= 0;
 				header_out <= 8'h47;
 				ENA_OUT <= 1;
 				PSYNC_OUT <= 1;
@@ -134,7 +134,10 @@ else
 			begin
 			payload_counter <= 0;
 			if(table_ready)
+				begin
 				state <= insert_table;
+				start_table <= 1;
+				end
 			else
 				state <= insert_header;
 			continuity_counter <= continuity_counter + 1'b1;
@@ -142,24 +145,11 @@ else
 		end
 	insert_table:
 		begin
-		if(payload_counter < 188)
-			begin
-			if(payload_counter == 0)
-				begin
-				ENA_OUT <= 1;
-				PSYNC_OUT <= 1;
-				end
-			else if(payload_counter == 1)
-				PSYNC_OUT <= 0;
-			payload_counter <= payload_counter + 1'b1;
-			end
-		else
-			begin
-			ENA_OUT <= 0;
-			payload_counter <= 0;
-			table_sent <= 1;
+		start_table <= 0;
+		header_out <= table_out;
+		ENA_OUT <= table_ena;
+		if(table_sent)
 			state <= insert_header;
-			end
 		end
 	endcase
 end
@@ -183,10 +173,14 @@ insert_tables insert_tables(
 .CLK(CLK),
 .TABLE_READY(table_ready),
 .TABLE_SENT(table_sent),
-.PAYLOAD_CNT(payload_counter),
-.DATA_OUT(table_out)
+.DATA_OUT(table_out),
+.ENA_OUT(table_ena),
+.pmt_pid(pmt_pid),
+.START(start_table)
 );
 wire table_ready;
+wire table_sent;
 wire [7:0] table_out;
+wire table_ena;
 
 endmodule
