@@ -13,7 +13,7 @@ output [7:0] DATA_OUT,
 output reg ENA_OUT,
 output reg PSYNC_OUT,
 
-output [3:0] state_mon
+output [2:0] state_mon
 );
 assign state_mon = state;
 
@@ -27,7 +27,7 @@ reg [7:0] header_out;
 reg rd_req;
 reg start_table;
 
-reg [3:0] state;
+reg [2:0] state;
 parameter [3:0] wait_for_start		= 4'h0;
 parameter [3:0] insert_header			= 4'h1;
 parameter [3:0] insert_af_or_pointer= 4'h2;

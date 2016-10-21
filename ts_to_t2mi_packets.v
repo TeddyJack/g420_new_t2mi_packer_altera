@@ -37,13 +37,6 @@ assign DATA_OUT = (state == insert_up) ? DATA : data_out;
 wire [12:0] k_bch_bytes = k_bch[15:3];
 wire [12:0] dfl_bytes = k_bch_bytes - 13'd10;
 reg [12:0] payload_len_bytes;
-always@*
-case(current_t2mi_packet_type)
-type_bb_frame:		payload_len_bytes <= 13'd3 + k_bch_bytes;	// bb header 1 + k_bch_bytes
-type_timestamp:	payload_len_bytes <= 13'd11;					// len of timestamp
-type_l1:				payload_len_bytes <= 13'd2 + `L1_LEN_BYTES;// L1 header + L1 len bytes
-default:				payload_len_bytes <= 0;
-endcase
 wire [12:0] t2mi_packet_len_bytes = 13'd6 + payload_len_bytes + 13'd4;	// t2mi header + payload_len_bytes + crc_32
 wire [12:0] bytes_till_end_of_pkt = t2mi_packet_len_bytes - t2mi_byte_count;
 assign POINTER = (bytes_till_end_of_pkt > 13'hFF) ? 8'hFF : bytes_till_end_of_pkt[7:0];
@@ -66,7 +59,7 @@ reg crc_8_init;
 reg crc_32_init;
 reg [3:0] local_counter;
 reg [12:0] payload_byte_counter;
-reg [12:0] t2mi_byte_count;				// byte counter in t2mi packet	// commented cause moved to ports for testing
+reg [12:0] t2mi_byte_count;				// byte counter in t2mi packet
 reg [7:0] packet_count;						// t2mi packet counter
 reg [7:0] frame_idx;							// t2 frame counter
 reg [3:0] superframe_idx;					// superframe counter;
@@ -112,6 +105,7 @@ if(!RST)
 	superframe_idx <= 0;
 	SHIFT_L1 <= 0;
 	subseconds_reg <= 0;
+	payload_len_bytes <= 0;
 	end
 else
 	case(state)
@@ -352,14 +346,22 @@ else
 				if(bb_frame_count < (plp_num_blocks - 1'b1))
 					bb_frame_count <= bb_frame_count + 1'b1;
 				else
+					begin
 					current_t2mi_packet_type <= type_timestamp;
+					payload_len_bytes <= 13'd11;					// len of timestamp
+					end
 				end
 			type_timestamp:
+				begin
 				current_t2mi_packet_type <= type_l1;
+				payload_len_bytes <= 13'd2 + `L1_LEN_BYTES;// L1 header + L1 len bytes
+
+				end
 			type_l1:
 				begin
 				current_t2mi_packet_type <= type_bb_frame;
 				bb_frame_count <= 0;
+				payload_len_bytes <= 13'd3 + k_bch_bytes;	// bb header 1 + k_bch_bytes
 				end
 			endcase
 			end
