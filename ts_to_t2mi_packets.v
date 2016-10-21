@@ -226,12 +226,13 @@ else
 	insert_up:
 		begin
 		ENA_OUT <= RD_REQ && (!EMPTY);
-		if(payload_byte_counter < (dfl_bytes + 1'b1))	// due to FIFO delay, this counter counts from 2 to (dfl + 1)
+		if(payload_byte_counter < dfl_bytes)
 			begin
 			if(!EMPTY)
 				begin
-				payload_byte_counter <= payload_byte_counter + 1'b1;
-				if(payload_byte_counter < dfl_bytes)
+				if(RD_REQ)
+					payload_byte_counter <= payload_byte_counter + 1'b1;
+				if(payload_byte_counter < (dfl_bytes - 1'b1))
 					RD_REQ <= !EMPTY;
 				else
 					RD_REQ <= 0;

@@ -119,12 +119,13 @@ else
 	insert_payload:
 		begin
 		ENA_OUT <= rd_req && (!empty);
-		if(payload_counter < (payload_len + 1'b1))	// due to FIFO delay(), this counter counts from 2 to (payload_len + 1)
+		if(payload_counter < payload_len)
 			begin
 			if(!empty)
 				begin
-				payload_counter <= payload_counter + 1'b1;
-				if(payload_counter < payload_len)
+				if(rd_req)
+					payload_counter <= payload_counter + 1'b1;
+				if(payload_counter < (payload_len - 1'b1))
 					rd_req <= !empty;
 				else
 					rd_req <= 0;
