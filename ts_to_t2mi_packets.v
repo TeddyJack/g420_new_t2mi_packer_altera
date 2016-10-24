@@ -119,9 +119,9 @@ else
 		if(local_counter < 6)
 			begin
 			local_counter <= local_counter + 1'b1;
+			ENA_OUT <= 1;
 			case(local_counter)
 			0:	begin
-				ENA_OUT <= 1;
 				crc_32_init <= 0;
 				case(current_t2mi_packet_type)
 				type_bb_frame:		data_out <= 8'h00;	// packet type
@@ -158,11 +158,9 @@ else
 		if(local_counter < 3)
 			begin
 			local_counter <= local_counter + 1'b1;
+			ENA_OUT <= 1;
 			case(local_counter)
-			0:	begin
-				ENA_OUT <= 1;
-				data_out <= frame_idx;						// frame idx
-				end
+			0:	data_out <= frame_idx;						// frame idx
 			1: data_out <= plp_id;							// plp_id
 			2: begin
 				data_out[7] <= ~|bb_frame_count;		// interleaving frame start (if bb_frame_count == 0 then 1, else 0)
@@ -182,9 +180,9 @@ else
 		if(local_counter < 10)
 			begin
 			local_counter <= local_counter + 1'b1;
+			ENA_OUT <= 1;
 			case(local_counter)
 			0:	begin										// MATYPE-1
-				ENA_OUT <= 1;
 				data_out[7:6]	<= 2'b11;			// input stream format: GFPS/GCS/GSE/TS
 				data_out[5]		<= 1'b1;				// (MIS/SIS) multiple/single input stream (referred to the global signal, not to each PLP)
 				data_out[4]		<= 1'b1;				// ACM/CCM (different/same coding and modulation parameters for each PLP)
@@ -243,9 +241,9 @@ else
 		if(local_counter < 11)
 			begin
 			local_counter <= local_counter + 1'b1;
+			ENA_OUT <= 1;
 			case(local_counter)
 			0:	begin
-				ENA_OUT <= 1;
 				data_out[7:4] <= 0;				// rfu
 				data_out[3:0] <= bandwidth;
 				end
@@ -276,11 +274,9 @@ else
 		if(local_counter < 2)
 			begin
 			local_counter <= local_counter + 1'b1;
+			ENA_OUT <= 1;
 			case(local_counter)
-			0:	begin
-				ENA_OUT <= 1;
-				data_out <= frame_idx;		// frame idx
-				end
+			0:	data_out <= frame_idx;		// frame idx
 			1: begin
 				data_out[7:6] <= 0;			// freq source: 0 = L1 frequency field; 1 = individual adressing function; 3 = manually set at modulator
 				data_out[5:0] <= 0;			// rfu

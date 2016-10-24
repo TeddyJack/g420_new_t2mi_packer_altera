@@ -11,13 +11,14 @@ input [12:0] pmt_pid,
 
 output [7:0] DATA_OUT,
 output reg ENA_OUT,
-output reg PSYNC_OUT,
+output PSYNC_OUT,
 
 output [2:0] state_mon
 );
 assign state_mon = state;
 
 assign DATA_OUT = (state == insert_payload) ? payload_out : header_out;
+assign PSYNC_OUT = (state == insert_table) ? table_psync : psync_out;
 
 reg [3:0] continuity_counter;
 reg [3:0] local_counter;
@@ -26,6 +27,7 @@ reg [7:0] payload_len;
 reg [7:0] header_out;
 reg rd_req;
 reg start_table;
+reg psync_out;
 
 reg [2:0] state;
 parameter [3:0] wait_for_start		= 4'h0;
@@ -42,7 +44,7 @@ if(!RST)
 	ENA_OUT <= 0;
 	continuity_counter <= 0;
 	local_counter <= 0;
-	PSYNC_OUT <= 0;
+	psync_out <= 0;
 	rd_req <= 0;
 	payload_len <= 0;
 	header_out <= 0;
@@ -61,18 +63,18 @@ else
 		if(local_counter < 4)
 			begin
 			local_counter <= local_counter + 1'b1;
+			ENA_OUT <= 1;
 			case(local_counter)
 			0:	begin
 				header_out <= 8'h47;
-				ENA_OUT <= 1;
-				PSYNC_OUT <= 1;
+				psync_out <= 1;
 				end
 			1:	begin
 				header_out[7] <= 0;	// transport error indicator
 				header_out[6] <= (pointer_out < 183) ? 1'b1 : 1'b0;	// payload unit start indicator
 				header_out[5] <= 0;	// transport priority
 				header_out[4:0] <= t2mi_pid[12:8];
-				PSYNC_OUT <= 0;
+				psync_out <= 0;
 				end
 			2:	header_out <= t2mi_pid[7:0];
 			3:	begin
@@ -178,11 +180,12 @@ insert_tables insert_tables(
 .ENA_OUT(table_ena),
 .pmt_pid(pmt_pid),
 .t2mi_pid(t2mi_pid),
-.START(start_table)
+.START(start_table),
+.PSYNC(table_psync)
 );
 wire table_ready;
 wire table_sent;
 wire [7:0] table_out;
 wire table_ena;
-
+wire table_psync;
 endmodule

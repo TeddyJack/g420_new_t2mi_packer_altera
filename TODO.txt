@@ -1,0 +1,11 @@
+1) ISSY calculation and insertion (Ignored for current moment)
+In NM ISSY is inserted to TS before packetizing into BB frames.
+In NM ISSY is inserted as additional bytes in the end of each transport packet:
+[CRC-8 of previous packet 1 byte] + [header (no sync-byte) 3 bytes] + [payload 184 bytes] + [ISSY 2 or 3 bytes]
+To insert ISSY in TS, we should have some reserve of time
+
+2) CRC-8 is calculated on negedge to be on time. May be dangerous
+
+3) InsertTables module is written too complicated. Need to optimize
+
+4) Used 2 FIFOs: input and output. The output is not necessary, it is made to simplify logic. Need to make TS2T2MIpackets module work only when T2MIoverTS has state: insert_payload

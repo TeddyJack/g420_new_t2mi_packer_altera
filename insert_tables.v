@@ -10,6 +10,7 @@ output reg ENA_OUT,
 input [12:0] pmt_pid,
 input [12:0] t2mi_pid,
 input START,
+output reg PSYNC,
 output [2:0] state_mon
 );
 
@@ -45,6 +46,7 @@ if(!RST)
 	ENA_OUT <= 0;
 	DATA_OUT <= 0;
 	current_table_len <= 0;
+	PSYNC <= 0;
 	end
 else
 	case(state)
@@ -61,10 +63,14 @@ else
 			ENA_OUT <= 1;
 			counter <= counter + 1'b1;
 			case(counter)
-			0:	DATA_OUT <= 8'h47;
+			0:	begin
+				DATA_OUT <= 8'h47;
+				PSYNC <= 1;
+				end
 			1:	begin
 				DATA_OUT[7:5] <= 3'b010;	// transp err indic, payl start unit indic, transp priority
 				DATA_OUT[4:0] <= current_pid[12:8];
+				PSYNC <= 0;
 				end
 			2:	DATA_OUT <= current_pid[7:0];
 			3:	begin
