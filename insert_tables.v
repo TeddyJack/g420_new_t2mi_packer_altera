@@ -268,7 +268,7 @@ else
 	end
 end
 
-parameter [31:0] cnt_limit_pat = 500*`MAIN_CLK*1000-1;
+parameter [31:0] cnt_limit_pat = 500*`MAIN_CLK*1000;
 reg [31:0] pat_pmt_counter;		// base timer, that triggers every 0.5 s
 reg [1:0] sdt_eit_counter;
 always@(posedge CLK or negedge RST)
@@ -280,7 +280,7 @@ if(!RST)
 	end
 else
 	begin
-	if(pat_pmt_counter < cnt_limit_pat)
+	if(pat_pmt_counter < (cnt_limit_pat - 1'b1))
 		pat_pmt_counter <= pat_pmt_counter + 1'b1;
 	else
 		begin
@@ -292,7 +292,7 @@ end
 
 wire pat_trigger = (pat_pmt_counter == 0);
 // next 2 lines are written this way to distribute table triggers equally inside the 0.5 s period
-wire pmt_trigger = (pat_pmt_counter == (cnt_limit_pat+1)/3);
-wire sdt_trigger = (pat_pmt_counter == (cnt_limit_pat+1)*2/3) && (sdt_eit_counter == 0);
+wire pmt_trigger = (pat_pmt_counter == cnt_limit_pat*1/3);
+wire sdt_trigger = (pat_pmt_counter == cnt_limit_pat*2/3) && (sdt_eit_counter == 0);
 
 endmodule

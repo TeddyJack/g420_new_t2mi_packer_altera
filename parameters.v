@@ -16,26 +16,20 @@ output reg [7:0] num_t2_frames,
 output [15:0] k_bch
 );
 
-reg [7:0] l1_signalling_packet [66:0];
+(* ramstyle = "logic" *) reg [7:0] l1_signalling_packet [66:0];
 assign L1_DATA_OUT = l1_signalling_packet[0];
 
 integer i;
-always@(posedge CLK or negedge RST)
+always@(posedge CLK)
 begin
-if(!RST)
+if(L1_LOAD || L1_SHIFT)
 	begin
-	end
-else
-	begin
-	if(L1_LOAD || L1_SHIFT)
-		begin
-		for(i=0; i<(`L1_LEN_BYTES-1'b1); i=i+1)
-			l1_signalling_packet[i] <= l1_signalling_packet[i+1];
-		if(L1_LOAD)
-			l1_signalling_packet[`L1_LEN_BYTES-1'b1] <= L1_DATA_IN;
-		else if(L1_SHIFT)
-			l1_signalling_packet[`L1_LEN_BYTES-1'b1] <= l1_signalling_packet[0];
-		end
+	for(i=0; i<(`L1_LEN_BYTES-1'b1); i=i+1)
+		l1_signalling_packet[i] <= l1_signalling_packet[i+1];
+	if(L1_LOAD)
+		l1_signalling_packet[`L1_LEN_BYTES-1'b1] <= L1_DATA_IN;
+	else if(L1_SHIFT)
+		l1_signalling_packet[`L1_LEN_BYTES-1'b1] <= l1_signalling_packet[0];
 	end
 end
 

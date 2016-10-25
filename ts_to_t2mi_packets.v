@@ -11,7 +11,7 @@ output reg RD_REQ,
 
 input [7:0] plp_id,
 input [2:0] t2mi_stream_id,
-input NM_or_HEM,
+input nm_or_hem,
 input [15:0] k_bch,
 input [9:0] plp_num_blocks,
 input [7:0] num_t2_frames,
@@ -43,8 +43,8 @@ assign POINTER = (bytes_till_end_of_pkt > 13'hFF) ? 8'hFF : bytes_till_end_of_pk
 wire [15:0] dfl = dfl_bytes << 3;
 wire [15:0] payload_len = payload_len_bytes << 3;
 
-// parameter that depend on NM_or_HEM and ISSY (but ISSY is not considered). Change this in case of multi-PLP
-wire [7:0] upl_bytes = 8'd188 - NM_or_HEM;	// NM = 188 bytes, HEM = 187 bytes
+// parameter that depend on nm_or_hem and ISSY (but ISSY is not considered). Change this in case of multi-PLP
+wire [7:0] upl_bytes = 8'd188 - nm_or_hem;	// NM = 188 bytes, HEM = 187 bytes
 wire [15:0] upl = upl_bytes << 3;				// multiply by 8
 wire [15:0] syncd = (upl_bytes - BYTE_INDEX + 1'b1) << 3;		// upl depends on NM/HEM and ISSY len, but ISSY is not used
 
@@ -192,17 +192,17 @@ else
 				crc_8_ena <= 1;
 				end
 			1:	data_out <= 0;									// MATYPE-2, for detailed info visit [en_302755v010401p, page 27]
-			2:	data_out <= NM_or_HEM ? 8'h0 : upl[15:8];	// if HEM then issy_value[23:16], else UPL (user packet length in bits) msb
-			3: data_out <= NM_or_HEM ? 8'h0 : upl[7:0];	// if HEM then issy_value[15:8], else UPL lsb
+			2:	data_out <= nm_or_hem ? 8'h0 : upl[15:8];	// if HEM then issy_value[23:16], else UPL (user packet length in bits) msb
+			3: data_out <= nm_or_hem ? 8'h0 : upl[7:0];	// if HEM then issy_value[15:8], else UPL lsb
 			4:	data_out <= dfl[15:8];						// DFL (data field length) msb
 			5:	data_out <= dfl[7:0];						// DFL lsb
-			6:	data_out <= NM_or_HEM ? 8'h0 : 8'h47;		// if HEM then issy_value[7:0], else sync byte
+			6:	data_out <= nm_or_hem ? 8'h0 : 8'h47;		// if HEM then issy_value[7:0], else sync byte
 			7:	data_out <= syncd[15:8];					// syncd
 			8:	data_out <= syncd[7:0];
 			9:	begin
 				crc_8_ena <= 0;
 				crc_8_init <= 1;
-				data_out <= crc_8 ^ NM_or_HEM;	// CRC-8 xor MODE	// CRC module works on negedge to calculate CRC on time without delays. Be careful with that
+				data_out <= crc_8 ^ nm_or_hem;	// CRC-8 xor MODE	// CRC module works on negedge to calculate CRC on time without delays. Be careful with that
 				end
 			endcase
 			end
@@ -300,7 +300,6 @@ else
 				data_out <= frame_idx;
 			else
 				data_out <= L1_current_byte;
-			//SHIFT_L1 <= 1;	// shift is too late, so it was moved 1 step before. in no better idea, delete this commented line
 			ENA_OUT <= 1;
 			if(payload_byte_counter == (`L1_LEN_BYTES - 1'b1))
 				SHIFT_L1 <= 0;
@@ -309,7 +308,6 @@ else
 			begin
 			payload_byte_counter <= 0;
 			state <= insert_crc_32_of_t2mi_packet;
-			//SHIFT_L1 <= 0;	// shift is too late, so it was moved 1 step before. in no better idea, delete this commented line
 			ENA_OUT <= 0;
 			if(frame_idx < (num_t2_frames - 1'b1))
 				frame_idx <= frame_idx + 1'b1;

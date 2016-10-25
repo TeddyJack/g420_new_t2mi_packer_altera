@@ -4,7 +4,7 @@ input [7:0] DATA_IN,
 input DCLK_IN,
 input DVALID_IN,
 input RD_REQ,
-input NM_or_HEM,
+input nm_or_hem,
 
 output [7:0] DATA_OUT,
 output [7:0] BYTE_INDEX,
@@ -31,14 +31,14 @@ wire [7:0] data_out;
 wire dvalid_out;
 wire [7:0] byte_index;
 
-wire [7:0] fifo_input = ((!NM_or_HEM) && crc_8_init) ? crc_8_reg : data_out;
+wire [7:0] fifo_input = ((!nm_or_hem) && crc_8_init) ? crc_8_reg : data_out;
 // It was found while testing: when (input TS bitrate = 53 Mbps), FIFO is filled with (<= 33) words
 input_ts_fifo input_ts_fifo(
 .aclr((!RST) || (!sync_found)),
 .clock(DCLK_IN),
 .data({byte_index,fifo_input}),
 .rdreq(RD_REQ),		
-.wrreq(dvalid_out && sync_found && (!(psync_out && NM_or_HEM))),	// in HEM syncbyte should be skipped, but in NM we put CRC-8 of previous UP instead
+.wrreq(dvalid_out && sync_found && (!(psync_out && nm_or_hem))),	// in HEM syncbyte should be skipped, but in NM we put CRC-8 of previous UP instead
 
 .empty(EMPTY),
 .q({BYTE_INDEX,DATA_OUT})

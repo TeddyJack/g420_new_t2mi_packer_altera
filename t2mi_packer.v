@@ -34,13 +34,13 @@ parameters parameters(
 .L1_DATA_OUT(l1_data_out),
 
 .plp_id(plp_id),
-.nm_or_hem(NM_or_HEM),
+.nm_or_hem(nm_or_hem),
 .plp_num_blocks(plp_num_blocks),
 .num_t2_frames(num_t2_frames),
 .k_bch(k_bch)
 );
 wire [7:0] plp_id;
-wire NM_or_HEM;
+wire nm_or_hem;
 wire [15:0] k_bch;
 wire [9:0] plp_num_blocks;
 wire [7:0] l1_data_out;
@@ -52,7 +52,7 @@ input_ts_prepare input_ts_prepare(
 .DCLK_IN(TS_DCLK_IN),
 .DVALID_IN(TS_DVALID_IN),
 .RD_REQ(rd_req_in),
-.NM_or_HEM(NM_or_HEM),
+.nm_or_hem(nm_or_hem),
 
 .DATA_OUT(data_out),
 .BYTE_INDEX(byte_index),
@@ -77,7 +77,7 @@ ts_to_t2mi_packets ts_to_t2mi_packets(
 
 .plp_id(plp_id),
 .t2mi_stream_id(t2mi_stream_id),
-.NM_or_HEM(NM_or_HEM),
+.nm_or_hem(nm_or_hem),
 .k_bch(k_bch),
 .plp_num_blocks(plp_num_blocks),
 .num_t2_frames(num_t2_frames),
