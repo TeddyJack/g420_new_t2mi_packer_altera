@@ -1,11 +1,13 @@
+`include "defines.v"
+
 module t2mi_packer(
 input RST,
 input [7:0] TS_DATA_IN,
 input TS_DCLK_IN,
 input TS_DVALID_IN,
 
-input [7:0] L1_DATA_IN,
-input L1_LOAD,
+input [(8*`L1_LEN_BYTES-1):0] L1_BUS_IN,
+
 // timestamp
 input [3:0] bandwidth,			// 0 = 1.7 MHz, 1 = 5 MHz, 2 = 6 MHz, 3 = 7 MHz, 4 = 8 MHz, 5 = 10 MHz
 input [1:0] timestamp_type,	// 0 = null, 1 = relative, 2 = absolute
@@ -22,15 +24,14 @@ output T2MI_PSYNC_OUT
 );
 
 assign T2MI_DCLK_OUT = TS_DCLK_IN;
-wire reset = RST & (!L1_LOAD);
+wire reset = RST;
 
 parameters parameters(
 .CLK(TS_DCLK_IN),
 .RST(RST),
 
-.L1_DATA_IN(L1_DATA_IN),
-.L1_LOAD(L1_LOAD),
-.L1_SHIFT(l1_shift),
+.L1_BUS_IN(L1_BUS_IN),
+.L1_ADDRESS(l1_address),
 .L1_DATA_OUT(l1_data_out),
 
 .plp_id(plp_id),
@@ -72,7 +73,7 @@ ts_to_t2mi_packets ts_to_t2mi_packets(
 .SYNC_FOUND(sync_found),
 .EMPTY(empty_in),
 
-.SHIFT_L1(l1_shift),
+.L1_address(l1_address),
 .L1_current_byte(l1_data_out),
 
 .plp_id(plp_id),
@@ -92,7 +93,7 @@ ts_to_t2mi_packets ts_to_t2mi_packets(
 .POINTER(pointer)
 );
 wire rd_req_in;
-wire l1_shift;
+wire [6:0] l1_address;
 wire [7:0] t2mi_packets;
 wire t2mi_packets_ena;
 wire [7:0] pointer;

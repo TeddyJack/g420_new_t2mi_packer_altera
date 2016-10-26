@@ -1,3 +1,5 @@
+`include "defines.v"
+
 module t2mi_packer_project(
 input BOARD_CLK,
 input BUTTON,
@@ -19,11 +21,9 @@ assign SC_D_OUT = !dvalid_out;
 L1_giver L1_giver(
 .CLK(DCLK),
 .RST(BUTTON),
-.L1_DATA(l1_data),
-.L1_LOAD(l1_load)
+.L1_BUS(l1_bus)
 );
-wire [7:0] l1_data;
-wire l1_load;
+wire [(8*`L1_LEN_BYTES-1):0] l1_bus;
 
 t2mi_packer t2mi_packer(
 .RST(BUTTON),
@@ -31,8 +31,7 @@ t2mi_packer t2mi_packer(
 .TS_DCLK_IN(DCLK),
 .TS_DVALID_IN(!(SC_D || RDY)),
 
-.L1_DATA_IN(l1_data),
-.L1_LOAD(l1_load),
+.L1_BUS_IN(l1_bus),
 
 // timestamp
 .bandwidth(4'h4),			// 0 = 1.7 MHz, 1 = 5 MHz, 2 = 6 MHz, 3 = 7 MHz, 4 = 8 MHz, 5 = 10 MHz

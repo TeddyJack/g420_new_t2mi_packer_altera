@@ -20,7 +20,7 @@ input [1:0] timestamp_type,
 input [3:0] bandwidth,
 input [26:0] T_sf_ssu,
 
-output reg SHIFT_L1,
+output [6:0] L1_address,
 input [7:0] L1_current_byte,
 
 output [7:0] DATA_OUT,
@@ -32,6 +32,7 @@ output [3:0] state_mon
 assign state_mon = state;
 
 assign DATA_OUT = (state == insert_up) ? DATA : data_out;
+assign L1_address = payload_byte_counter[6:0];		// actual when (state == insert_L1). though the output is not restricted when other states
 
 // parameters that depend on k_bch
 wire [12:0] k_bch_bytes = k_bch[15:3];
@@ -103,7 +104,6 @@ if(!RST)
 	bb_frame_count <= 0;
 	frame_idx <= 0;
 	superframe_idx <= 0;
-	SHIFT_L1 <= 0;
 	subseconds_reg <= 0;
 	payload_len_bytes <= 0;
 	end
@@ -288,7 +288,6 @@ else
 			local_counter <= 0;
 			ENA_OUT <= 0;
 			state <= insert_L1;
-			SHIFT_L1 <= 1;
 			end
 		end
 	insert_L1:
@@ -301,8 +300,6 @@ else
 			else
 				data_out <= L1_current_byte;
 			ENA_OUT <= 1;
-			if(payload_byte_counter == (`L1_LEN_BYTES - 1'b1))
-				SHIFT_L1 <= 0;
 			end
 		else
 			begin
