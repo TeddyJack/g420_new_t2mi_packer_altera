@@ -82,7 +82,7 @@ A6		// 37)	[7]		plp_rotation: 0 = not used, 1 = used
 		//			[1]		in-band A flag
 		//			[0]		in-band B flag
 00		// 41)				reserved[10:3]
-10		// 42)	[7:5]		reserved[2:0]
+08		// 42)	[7:5]		reserved[2:0]
 		//			[4:3]		plp_mode: 1 = NM, 2 = HEM
 		//			[2]		static flag (L1 post may or may not change within 1 superframe): 0 = non-static L1 post, 1 = static L1 post
 		//			[1]		static padding flag (DFL may or may not change from one BB frame to another): 0 - non-static padding, 1 = static padding

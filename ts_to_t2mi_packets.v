@@ -48,7 +48,7 @@ wire [15:0] payload_len = payload_len_bytes << 3;
 // parameter that depend on nm_or_hem and ISSY (but ISSY is not considered). Change this in case of multi-PLP
 wire [7:0] upl_bytes = 8'd188 - nm_or_hem;	// NM = 188 bytes, HEM = 187 bytes
 wire [15:0] upl = upl_bytes << 3;				// multiply by 8
-wire [15:0] syncd = (upl_bytes - BYTE_INDEX + 1'b1) << 3;		// upl depends on NM/HEM and ISSY len, but ISSY is not used
+wire [15:0] syncd = (upl_bytes - BYTE_INDEX) << 3;		// upl depends on NM/HEM and ISSY len, but ISSY is not used. it was +1'b1 inside the brackets before optimizing
 
 // parameters that depend on type_timestamp type
 wire [39:0] seconds_since_2000 = ~|timestamp_type ? {40{1'b1}} : {40{1'b0}};					// null : relative

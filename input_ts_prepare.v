@@ -7,7 +7,7 @@ input RD_REQ,
 input nm_or_hem,
 
 output [7:0] DATA_OUT,
-output [7:0] BYTE_INDEX,
+output reg [7:0] BYTE_INDEX_A,	// byte index adapted
 output SYNC_FOUND,
 output EMPTY
 );
@@ -36,12 +36,12 @@ wire [7:0] fifo_input = ((!nm_or_hem) && crc_8_init) ? crc_8_reg : data_out;
 input_ts_fifo input_ts_fifo(
 .aclr((!RST) || (!sync_found)),
 .clock(DCLK_IN),
-.data({byte_index,fifo_input}),
+.data(fifo_input),
 .rdreq(RD_REQ),		
 .wrreq(dvalid_out && sync_found && (!(psync_out && nm_or_hem))),	// in HEM syncbyte should be skipped, but in NM we put CRC-8 of previous UP instead
 
 .empty(EMPTY),
-.q({BYTE_INDEX,DATA_OUT})
+.q(DATA_OUT)
 );
 
 reg crc_8_ena;
@@ -71,9 +71,9 @@ end
 CRC_8 CRC_8(
 .CLK(DCLK_IN),
 .RST(RST),
-.ENA(crc_8_ena),
+.ENA(crc_8_ena & dvalid_out),
 .INIT(crc_8_init),
-.d(DATA_IN),
+.d(data_out),
 
 .CRC(crc_8)
 );
@@ -85,7 +85,32 @@ begin
 if(!RST)
 	crc_8_reg <= 0;
 else
-	crc_8_reg <= crc_8;
+	begin
+	if(crc_8_ena & dvalid_out)
+		crc_8_reg <= crc_8;
+	end
+end
+
+wire [7:0] upl_bytes = 8'd188 - nm_or_hem;	// NM = 188 bytes, HEM = 187 bytes
+
+always@(posedge DCLK_IN or negedge RST)
+begin
+if(!RST)
+	begin
+	BYTE_INDEX_A <= 0;
+	end
+else
+	begin
+	if(!SYNC_FOUND)
+		BYTE_INDEX_A <= 0;
+	else if(RD_REQ & (!EMPTY))
+		begin
+		if(BYTE_INDEX_A < upl_bytes)
+			BYTE_INDEX_A <= BYTE_INDEX_A + 1'b1;
+		else
+			BYTE_INDEX_A <= 1;
+		end
+	end
 end
 
 endmodule

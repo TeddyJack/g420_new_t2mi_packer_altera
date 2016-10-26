@@ -56,7 +56,7 @@ input_ts_prepare input_ts_prepare(
 .nm_or_hem(nm_or_hem),
 
 .DATA_OUT(data_out),
-.BYTE_INDEX(byte_index),
+.BYTE_INDEX_A(byte_index),
 .SYNC_FOUND(sync_found),
 .EMPTY(empty_in)
 );
