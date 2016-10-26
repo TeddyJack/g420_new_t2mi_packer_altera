@@ -13,11 +13,13 @@ output [7:0] DATA_OUT,
 output reg ENA_OUT,
 output PSYNC_OUT,
 
+output reg ENA_TS2T2MI,
+
 output [2:0] state_mon
 );
 assign state_mon = state;
 
-assign DATA_OUT = (state == insert_payload) ? payload_out : header_out;
+assign DATA_OUT = header_out;
 assign PSYNC_OUT = (state == insert_table) ? table_psync : psync_out;
 
 reg [3:0] continuity_counter;
@@ -25,7 +27,6 @@ reg [3:0] local_counter;
 reg [7:0] payload_counter;
 reg [7:0] payload_len;
 reg [7:0] header_out;
-reg rd_req;
 reg start_table;
 reg psync_out;
 
@@ -45,11 +46,11 @@ if(!RST)
 	continuity_counter <= 0;
 	local_counter <= 0;
 	psync_out <= 0;
-	rd_req <= 0;
 	payload_len <= 0;
 	header_out <= 0;
 	payload_counter <= 0;
 	start_table <= 0;
+	ENA_TS2T2MI <= 0;
 	end
 else
 	case(state)
@@ -71,7 +72,7 @@ else
 				end
 			1:	begin
 				header_out[7] <= 0;	// transport error indicator
-				header_out[6] <= (pointer_out < 183) ? 1'b1 : 1'b0;	// payload unit start indicator
+				header_out[6] <= (POINTER_IN < 183) ? 1'b1 : 1'b0;	// payload unit start indicator
 				header_out[5] <= 0;	// transport priority
 				header_out[4:0] <= t2mi_pid[12:8];
 				psync_out <= 0;
@@ -79,7 +80,7 @@ else
 			2:	header_out <= t2mi_pid[7:0];
 			3:	begin
 				header_out[7:6] <= 0;	// transport scrambling control
-				header_out[5:4] <= (pointer_out == 183) ? 2'b11 : 2'b01;	// adaptation field control
+				header_out[5:4] <= (POINTER_IN == 183) ? 2'b11 : 2'b01;	// adaptation field control
 				header_out[3:0] <= continuity_counter;
 				end
 			endcase
@@ -88,9 +89,10 @@ else
 			begin
 			ENA_OUT <= 0;
 			local_counter <= 0;
-			if(pointer_out > 183)
+			if(POINTER_IN > 183)
 				begin
 				state <= insert_payload;
+				ENA_TS2T2MI <= 1;
 				payload_len <= 184;
 				end
 			else
@@ -105,10 +107,10 @@ else
 		if(local_counter < 1)
 			begin
 			ENA_OUT <= 1;
-			if(pointer_out == 183)
+			if(POINTER_IN == 183)
 				header_out <= 0;	// AF len
 			else
-				header_out <= pointer_out;
+				header_out <= POINTER_IN;
 			local_counter <= local_counter + 1'b1;
 			end
 		else
@@ -116,25 +118,25 @@ else
 			local_counter <= 0;
 			ENA_OUT <= 0;
 			state <= insert_payload;
+			ENA_TS2T2MI <= 1;
 			end
 		end
 	insert_payload:
 		begin
-		ENA_OUT <= rd_req && (!empty);
+		ENA_OUT <= ENA_IN;
 		if(payload_counter < payload_len)
 			begin
-			if(!empty)
+			if(ENA_IN)
 				begin
-				if(rd_req)
-					payload_counter <= payload_counter + 1'b1;
-				if(payload_counter < (payload_len - 1'b1))
-					rd_req <= !empty;
-				else
-					rd_req <= 0;
+				header_out <= DATA_IN;
+				payload_counter <= payload_counter + 1'b1;
+				if(payload_counter == (payload_len - 1'b1))
+				ENA_TS2T2MI <= 0;
 				end
 			end
 		else
 			begin
+			ENA_OUT <= 0;
 			payload_counter <= 0;
 			if(table_ready)
 				begin
@@ -156,20 +158,6 @@ else
 		end
 	endcase
 end
-
-// It was found while testing: when (bitrate = 54 Mbps) and (PAT, PMT and SDT are inserted), FIFO is filled with (<= 72) words 
-output_fifo output_fifo(
-.aclr(!RST),
-.clock(CLK),
-.data({POINTER_IN,DATA_IN}),
-.rdreq(rd_req),
-.wrreq(ENA_IN),
-.empty(empty),
-.q({pointer_out,payload_out})
-);
-wire empty;
-wire [7:0] pointer_out;
-wire [7:0] payload_out;
 
 insert_tables insert_tables(
 .RST(RST),

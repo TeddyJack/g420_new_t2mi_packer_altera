@@ -70,7 +70,7 @@ ts_to_t2mi_packets ts_to_t2mi_packets(
 .RST(reset),
 .DATA(data_out),
 .BYTE_INDEX(byte_index),
-.SYNC_FOUND(sync_found),
+.ENA_TS2T2MI(ena_ts2t2mi),
 .EMPTY(empty_in),
 
 .L1_address(l1_address),
@@ -111,7 +111,11 @@ t2mi_over_ts t2mi_over_ts(
 
 .DATA_OUT(T2MI_DATA_OUT),
 .ENA_OUT(T2MI_DVALID_OUT),
-.PSYNC_OUT(T2MI_PSYNC_OUT)
+.PSYNC_OUT(T2MI_PSYNC_OUT),
+
+.ENA_TS2T2MI(ena_ts2t2mi)
 );
+
+wire ena_ts2t2mi;
 
 endmodule

@@ -5,9 +5,9 @@ input CLK,
 input RST,
 input [7:0] DATA,
 input [7:0] BYTE_INDEX,
-input SYNC_FOUND,
+input ENA_TS2T2MI,
 input EMPTY,
-output reg RD_REQ,
+output RD_REQ,
 
 input [7:0] plp_id,
 input [2:0] t2mi_stream_id,
@@ -33,13 +33,14 @@ assign state_mon = state;
 
 assign DATA_OUT = (state == insert_up) ? DATA : data_out;
 assign L1_address = payload_byte_counter[6:0];		// actual when (state == insert_L1). though the output is not restricted when other states
+assign RD_REQ = rd_req && ENA_TS2T2MI;
 
 // parameters that depend on k_bch
 wire [12:0] k_bch_bytes = k_bch[15:3];
 wire [12:0] dfl_bytes = k_bch_bytes - 13'd10;
 reg [12:0] payload_len_bytes;
 wire [12:0] t2mi_packet_len_bytes = 13'd6 + payload_len_bytes + 13'd4;	// t2mi header + payload_len_bytes + crc_32
-wire [12:0] bytes_till_end_of_pkt = t2mi_packet_len_bytes - t2mi_byte_count;
+wire [12:0] bytes_till_end_of_pkt = t2mi_packet_len_bytes - t2mi_byte_count + 1'b1;	// +1'b1 was added after optimization to 1 FIFO
 assign POINTER = (bytes_till_end_of_pkt > 13'hFF) ? 8'hFF : bytes_till_end_of_pkt[7:0];
 wire [15:0] dfl = dfl_bytes << 3;
 wire [15:0] payload_len = payload_len_bytes << 3;
@@ -67,6 +68,7 @@ reg [3:0] superframe_idx;					// superframe counter;
 reg [9:0] bb_frame_count;
 reg [26:0] subseconds_reg;
 reg [7:0] data_out;
+reg rd_req;
 
 reg [1:0] current_t2mi_packet_type;
 parameter [1:0] type_bb_frame		= 2'h0;
@@ -74,15 +76,14 @@ parameter [1:0] type_timestamp	= 2'h1;
 parameter [1:0] type_l1				= 2'h2;
 
 reg [3:0] state;		// main state machine
-parameter [3:0] wait_for_start					= 4'h0;
-parameter [3:0] insert_t2mi_header				= 4'h1;
-parameter [3:0] insert_bb_header_1				= 4'h2;
-parameter [3:0] insert_bb_header_2				= 4'h3;
-parameter [3:0] insert_up							= 4'h4;
-parameter [3:0] insert_timestamp					= 4'h5;
-parameter [3:0] insert_L1_header					= 4'h6;
-parameter [3:0] insert_L1							= 4'h7;
-parameter [3:0] insert_crc_32_of_t2mi_packet	= 4'h8;
+parameter [3:0] insert_t2mi_header				= 4'h0;
+parameter [3:0] insert_bb_header_1				= 4'h1;
+parameter [3:0] insert_bb_header_2				= 4'h2;
+parameter [3:0] insert_up							= 4'h3;
+parameter [3:0] insert_timestamp					= 4'h4;
+parameter [3:0] insert_L1_header					= 4'h5;
+parameter [3:0] insert_L1							= 4'h6;
+parameter [3:0] insert_crc_32_of_t2mi_packet	= 4'h7;
 
 
 
@@ -94,9 +95,9 @@ if(!RST)
 	local_counter <= 0;
 	crc_8_ena <= 0;
 	crc_8_init <= 0;
-	RD_REQ <= 0;
+	rd_req <= 0;
 	payload_byte_counter <= 0;
-	state <= wait_for_start;
+	state <= insert_t2mi_header;
 	ENA_OUT <= 0;
 	packet_count <= 0;
 	crc_32_init <= 0;
@@ -107,13 +108,8 @@ if(!RST)
 	subseconds_reg <= 0;
 	payload_len_bytes <= 0;
 	end
-else
+else if(ENA_TS2T2MI)
 	case(state)
-	wait_for_start:
-		begin
-		if(SYNC_FOUND)
-			state <= insert_t2mi_header;
-		end
 	insert_t2mi_header:
 		begin
 		if(local_counter < 6)
@@ -217,17 +213,17 @@ else
 		end
 	insert_up:
 		begin
-		ENA_OUT <= RD_REQ && (!EMPTY);
+		ENA_OUT <= rd_req && (!EMPTY);
 		if(payload_byte_counter < dfl_bytes)
 			begin
 			if(!EMPTY)
 				begin
-				if(RD_REQ)
+				if(rd_req)
 					payload_byte_counter <= payload_byte_counter + 1'b1;
 				if(payload_byte_counter < (dfl_bytes - 1'b1))
-					RD_REQ <= !EMPTY;
+					rd_req <= !EMPTY;
 				else
-					RD_REQ <= 0;
+					rd_req <= 0;
 				end
 			end
 		else
@@ -363,8 +359,8 @@ end
 CRC_8 CRC_8(
 .CLK(CLK),
 .RST(RST),
-.ENA(crc_8_ena),
-.INIT(crc_8_init),
+.ENA(crc_8_ena && ENA_TS2T2MI),
+.INIT(crc_8_init && ENA_TS2T2MI),
 .d(DATA_OUT),
 
 .CRC(crc_8)
@@ -374,8 +370,8 @@ wire [7:0] crc_8;
 CRC_32 CRC_32(
 .CLK(CLK),
 .RST(RST),
-.ENA(ENA_OUT && (state != insert_crc_32_of_t2mi_packet)),
-.INIT(crc_32_init),
+.ENA(ENA_OUT && (state != insert_crc_32_of_t2mi_packet) && ENA_TS2T2MI),
+.INIT(crc_32_init && ENA_TS2T2MI),
 .D(DATA_OUT),
 
 .CRC(crc_32)
@@ -394,7 +390,7 @@ if(!RST)
 	begin
 	t2mi_byte_count <= 0;
 	end
-else
+else if(ENA_TS2T2MI)
 	begin
 	if(crc_32_init)
 		t2mi_byte_count <= 1;
