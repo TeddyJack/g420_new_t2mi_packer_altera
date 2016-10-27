@@ -27,9 +27,6 @@ assign T2MI_DCLK_OUT = TS_DCLK_IN;
 wire reset = RST & sync_found;		// modules ts_to_t2mi_packets and t2mi_over_ts are in reset when sync is lost. remove this in case of troubles
 
 parameters parameters(
-.CLK(TS_DCLK_IN),
-.RST(RST),
-
 .L1_BUS_IN(L1_BUS_IN),
 .L1_ADDRESS(l1_address),
 .L1_DATA_OUT(l1_data_out),

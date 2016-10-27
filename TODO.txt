@@ -4,10 +4,6 @@ In NM ISSY is inserted as additional bytes in the end of each transport packet:
 [CRC-8 of previous packet 1 byte] + [header (no sync-byte) 3 bytes] + [payload 184 bytes] + [ISSY 2 or 3 bytes]
 To insert ISSY in TS, we should have some reserve of time
 
-2) CRC-8 is calculated on negedge to be on time. May be dangerous
+2) CRC-8 is calculated on negedge to be on time in "ts_to_t2mi_packets" module. May be dangerous
 
 3) input_ts_prepare module needs to be re-architected, looks unoptimal
-
-4) Still haven't decided, to reset modules: "ts_to_t2mi_packets" and "t2mi_over_ts" on sync loss or not
-
-5) input FIFO may fullfill (has capacity 64 words) on bitrates ~50 Mbps

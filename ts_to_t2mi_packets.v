@@ -46,7 +46,7 @@ wire [15:0] dfl = dfl_bytes << 3;
 wire [15:0] payload_len = payload_len_bytes << 3;
 
 // parameter that depend on nm_or_hem and ISSY (but ISSY is not considered). Change this in case of multi-PLP
-wire [7:0] upl_bytes = 8'd188 - nm_or_hem;	// NM = 188 bytes, HEM = 187 bytes
+wire [7:0] upl_bytes = 8'd188 - nm_or_hem;	// NM = 188 bytes, HEM = 187 bytes	// this calculation is repeated in ts_to_t2mi_packets. when adding ISSY, optimize
 wire [15:0] upl = upl_bytes << 3;				// multiply by 8
 wire [15:0] syncd = (upl_bytes - BYTE_INDEX) << 3;		// upl depends on NM/HEM and ISSY len, but ISSY is not used. it was +1'b1 inside the brackets before optimizing
 

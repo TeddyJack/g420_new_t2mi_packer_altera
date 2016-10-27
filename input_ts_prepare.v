@@ -91,7 +91,7 @@ else
 	end
 end
 
-wire [7:0] upl_bytes = 8'd188 - nm_or_hem;	// NM = 188 bytes, HEM = 187 bytes
+wire [7:0] upl_bytes = 8'd188 - nm_or_hem;	// NM = 188 bytes, HEM = 187 bytes	// this calculation is repeated in ts_to_t2mi_packets. when adding ISSY, optimize
 
 always@(posedge DCLK_IN or negedge RST)
 begin

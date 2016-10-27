@@ -1,9 +1,6 @@
 `include "defines.v"
 
 module parameters(
-input CLK,
-input RST,
-
 input [(8*`L1_LEN_BYTES-1):0] L1_BUS_IN,
 input [6:0] L1_ADDRESS,
 output [7:0] L1_DATA_OUT,
