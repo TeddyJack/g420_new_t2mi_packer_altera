@@ -126,5 +126,14 @@ set_global_assignment -name TEXT_FILE sdt.txt
 set_global_assignment -name VERILOG_FILE insert_tables.v
 set_global_assignment -name CDF_FILE t2mi_packer_project.cdf
 set_global_assignment -name CDF_FILE output_files/t2mi_packer_project.cdf
-set_global_assignment -name SLD_FILE "C:/Users/TeddyJack/g420_new_t2mi_packer_altera/output_files/stp1_auto_stripped.stp"
+set_location_assignment PIN_T13 -to MOSI
+set_location_assignment PIN_R13 -to SCLK
+set_location_assignment PIN_R12 -to SS
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MOSI
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SCLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SS
+set_global_assignment -name VERILOG_FILE SPI.v
+set_global_assignment -name VERILOG_FILE rising_edge_detect.v
+set_global_assignment -name VERILOG_FILE code_cmd_decoder.v
+set_global_assignment -name SLD_FILE "C:/Users/TeddyJack/Projects/Altera Quartus II/g420_new_t2mi_packer_altera/output_files/stp1_auto_stripped.stp"
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
