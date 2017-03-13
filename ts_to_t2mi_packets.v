@@ -41,7 +41,7 @@ wire [12:0] dfl_bytes = k_bch_bytes - 13'd10;
 reg [12:0] payload_len_bytes;
 wire [12:0] t2mi_packet_len_bytes = 13'd6 + payload_len_bytes + 13'd4;	// t2mi header + payload_len_bytes + crc_32
 wire [12:0] bytes_till_end_of_pkt = t2mi_packet_len_bytes - t2mi_byte_count + 1'b1;	// +1'b1 was added after optimization to 1 FIFO
-assign POINTER = (bytes_till_end_of_pkt > 13'hFF) ? 8'hFF : bytes_till_end_of_pkt[7:0];
+assign POINTER = (t2mi_byte_count == 0) ? 0 : ((bytes_till_end_of_pkt > 13'hFF) ? 8'hFF : bytes_till_end_of_pkt[7:0]);
 wire [15:0] dfl = dfl_bytes << 3;
 wire [15:0] payload_len = payload_len_bytes << 3;
 
@@ -274,7 +274,7 @@ else if(ENA_TS2T2MI)
 			case(local_counter)
 			0:	data_out <= frame_idx;		// frame idx
 			1: begin
-				data_out[7:6] <= 0;			// freq source: 0 = L1 frequency field; 1 = individual adressing function; 3 = manually set at modulator
+				data_out[7:6] <= 0;			// freq source: 0 = L1 frequency field; 1 = individual adressing function; 2 = manually set at modulator
 				data_out[5:0] <= 0;			// rfu
 				end
 			endcase
@@ -395,7 +395,12 @@ else if(ENA_TS2T2MI)
 	if(crc_32_init)
 		t2mi_byte_count <= 1;
 	else if(ENA_OUT)
-		t2mi_byte_count <= t2mi_byte_count + 1'b1;
+		begin
+		if(t2mi_byte_count < t2mi_packet_len_bytes)
+			t2mi_byte_count <= t2mi_byte_count + 1'b1;
+		else
+			t2mi_byte_count <= 0;
+		end
 	end
 end
 
