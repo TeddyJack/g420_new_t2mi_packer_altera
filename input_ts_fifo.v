@@ -81,7 +81,7 @@ module input_ts_fifo (
 		scfifo_component.lpm_widthu = 7,
 		scfifo_component.overflow_checking = "ON",
 		scfifo_component.underflow_checking = "ON",
-		scfifo_component.use_eab = "OFF";
+		scfifo_component.use_eab = "ON";
 
 
 endmodule
@@ -99,7 +99,7 @@ endmodule
 // Retrieval info: PRIVATE: Empty NUMERIC "1"
 // Retrieval info: PRIVATE: Full NUMERIC "0"
 // Retrieval info: PRIVATE: INTENDED_DEVICE_FAMILY STRING "Cyclone IV E"
-// Retrieval info: PRIVATE: LE_BasedFIFO NUMERIC "1"
+// Retrieval info: PRIVATE: LE_BasedFIFO NUMERIC "0"
 // Retrieval info: PRIVATE: LegacyRREQ NUMERIC "1"
 // Retrieval info: PRIVATE: MAX_DEPTH_BY_9 NUMERIC "0"
 // Retrieval info: PRIVATE: OVERFLOW_CHECKING NUMERIC "0"
@@ -131,7 +131,7 @@ endmodule
 // Retrieval info: CONSTANT: LPM_WIDTHU NUMERIC "7"
 // Retrieval info: CONSTANT: OVERFLOW_CHECKING STRING "ON"
 // Retrieval info: CONSTANT: UNDERFLOW_CHECKING STRING "ON"
-// Retrieval info: CONSTANT: USE_EAB STRING "OFF"
+// Retrieval info: CONSTANT: USE_EAB STRING "ON"
 // Retrieval info: USED_PORT: aclr 0 0 0 0 INPUT NODEFVAL "aclr"
 // Retrieval info: USED_PORT: clock 0 0 0 0 INPUT NODEFVAL "clock"
 // Retrieval info: USED_PORT: data 0 0 8 0 INPUT NODEFVAL "data[7..0]"

@@ -253,7 +253,7 @@ else
 	end
 end
 
-parameter [31:0] cnt_limit_pat = 500*`MAIN_CLK*1000;
+parameter [31:0] cnt_limit_pat = 250*`MAIN_CLK*1000;	// changed from 0.5 to 0.25 s because of pat and pmt period error
 reg [31:0] pat_pmt_counter;		// base timer, that triggers every 0.5 s
 reg [1:0] sdt_eit_counter;
 always@(posedge CLK or negedge RST)
