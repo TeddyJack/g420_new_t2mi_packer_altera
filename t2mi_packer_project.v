@@ -66,11 +66,27 @@ wire inner_rst;
 //);
 wire [(8*`L1_LEN_BYTES-1):0] l1_bus;
 
+reclock_fifo reclock_fifo(
+.data		(DATA),
+.rdclk	(BOARD_CLK),
+.rdreq	(!empty),
+.wrclk	(DCLK),
+.wrreq	(!(SC_D | RDY)),
+.q			(data),
+.rdempty	(empty)
+);
+wire empty;
+wire [7:0] data;
+
+reg dvalid;
+always@(posedge BOARD_CLK)
+	dvalid <= !empty;
+
 t2mi_packer t2mi_packer(
 .RST(BUTTON && (!inner_rst)),
-.TS_DATA_IN(DATA),
-.TS_DCLK_IN(DCLK),
-.TS_DVALID_IN(!(SC_D || RDY)),
+.TS_DATA_IN(data),
+.TS_DCLK_IN(BOARD_CLK),
+.TS_DVALID_IN(dvalid),
 
 .L1_BUS_IN(l1_bus),
 

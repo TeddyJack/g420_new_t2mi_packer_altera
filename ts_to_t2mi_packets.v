@@ -41,7 +41,7 @@ wire [12:0] dfl_bytes = k_bch_bytes - 13'd10;
 reg [12:0] payload_len_bytes;
 wire [12:0] t2mi_packet_len_bytes = 13'd6 + payload_len_bytes + 13'd4;	// t2mi header + payload_len_bytes + crc_32
 wire [12:0] bytes_till_end_of_pkt = t2mi_packet_len_bytes - t2mi_byte_count + 1'b1;	// +1'b1 was added after optimization to 1 FIFO
-assign POINTER = (t2mi_byte_count == 0) ? 0 : ((bytes_till_end_of_pkt > 13'hFF) ? 8'hFF : bytes_till_end_of_pkt[7:0]);
+assign POINTER = (t2mi_byte_count == 0) ? 8'h0 : ((bytes_till_end_of_pkt > 13'hFF) ? 8'hFF : bytes_till_end_of_pkt[7:0]);
 wire [15:0] dfl = dfl_bytes << 3;
 wire [15:0] payload_len = payload_len_bytes << 3;
 
