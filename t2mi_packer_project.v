@@ -21,6 +21,7 @@ input MOSI
 );
 assign RDY_OUT = !dvalid_out;
 assign SC_D_OUT = !dvalid_out;
+assign DCLK_OUT = BOARD_CLK;
 
 SPI SPI(
 .CLK(DCLK),
@@ -100,7 +101,6 @@ t2mi_packer t2mi_packer(
 .pmt_pid(pmt_pid),
 
 .T2MI_DATA_OUT(DATA_OUT),
-.T2MI_DCLK_OUT(DCLK_OUT),
 .T2MI_DVALID_OUT(dvalid_out),
 .T2MI_PSYNC_OUT(PSYNC_OUT)
 );

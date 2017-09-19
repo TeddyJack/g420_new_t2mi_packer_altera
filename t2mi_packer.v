@@ -18,12 +18,10 @@ input [2:0] t2mi_stream_id,
 input [12:0] pmt_pid,
 
 output [7:0] T2MI_DATA_OUT,
-output T2MI_DCLK_OUT,
 output T2MI_DVALID_OUT,
 output T2MI_PSYNC_OUT
 );
 
-assign T2MI_DCLK_OUT = TS_DCLK_IN;
 wire reset = RST & sync_found;		// modules ts_to_t2mi_packets and t2mi_over_ts are in reset when sync is lost. remove this in case of troubles
 
 parameters parameters(
