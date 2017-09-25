@@ -26,6 +26,7 @@ input [7:0] L1_current_byte,
 output [7:0] DATA_OUT,
 output [7:0] POINTER,
 output reg ENA_OUT,
+output [1:0] t2mi_packet_type_corrected,
 
 output [3:0] state_mon
 );
@@ -34,6 +35,7 @@ assign state_mon = state;
 assign DATA_OUT = (state == insert_up) ? DATA : data_out;
 assign L1_address = payload_byte_counter[6:0];		// actual when (state == insert_L1). though the output is not restricted when other states
 assign RD_REQ = rd_req && ENA_TS2T2MI;
+assign t2mi_packet_type_corrected = ((~|current_t2mi_packet_type) & (bb_frame_count == (plp_num_blocks - 1'b1))) ? 2'h3 : current_t2mi_packet_type;
 
 // parameters that depend on k_bch
 wire [12:0] k_bch_bytes = k_bch[15:3];

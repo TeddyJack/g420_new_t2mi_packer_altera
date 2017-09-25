@@ -8,7 +8,7 @@ output TABLE_SENT,
 output reg [7:0] DATA_OUT,
 output reg ENA_OUT,
 input [12:0] pmt_pid,
-input [12:0] t2mi_pid,
+input [12:0] pcr_pid,
 input START,
 output reg PSYNC,
 output [2:0] state_mon
@@ -153,10 +153,10 @@ else
 				if(payload_counter == 8)
 					begin
 					DATA_OUT[7:5] <= 0;
-					DATA_OUT[4:0] <= t2mi_pid[12:8];
+					DATA_OUT[4:0] <= pcr_pid[12:8];
 					end
 				else if(payload_counter == 9)
-					DATA_OUT <= t2mi_pid[7:0];
+					DATA_OUT <= pcr_pid[7:0];
 				else
 					DATA_OUT <= pmt[payload_counter];
 				end

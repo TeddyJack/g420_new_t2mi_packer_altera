@@ -85,13 +85,15 @@ ts_to_t2mi_packets ts_to_t2mi_packets(
 .RD_REQ(rd_req_in),
 .DATA_OUT(t2mi_packets),
 .ENA_OUT(t2mi_packets_ena),
-.POINTER(pointer)
+.POINTER(pointer),
+.t2mi_packet_type_corrected(t2mi_packet_type)
 );
 wire rd_req_in;
 wire [6:0] l1_address;
 wire [7:0] t2mi_packets;
 wire t2mi_packets_ena;
 wire [7:0] pointer;
+wire [1:0] t2mi_packet_type;
 
 t2mi_over_ts t2mi_over_ts(
 .CLK(TS_DCLK_IN),
@@ -100,6 +102,7 @@ t2mi_over_ts t2mi_over_ts(
 .ENA_IN(t2mi_packets_ena),
 .DATA_IN(t2mi_packets),
 .POINTER_IN(pointer),
+.t2mi_packet_type(t2mi_packet_type),
 
 .t2mi_pid(t2mi_pid),
 .pmt_pid(pmt_pid),

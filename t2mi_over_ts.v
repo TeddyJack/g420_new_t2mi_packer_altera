@@ -1,3 +1,11 @@
+`define bb			2'h0
+`define tstamp		2'h1
+`define l1			2'h2
+`define last_bb	2'h3
+
+`define af_and_payl	2'b11
+`define payl_only		2'b01
+
 module t2mi_over_ts(
 input CLK,
 input RST,
@@ -5,6 +13,7 @@ input START,
 input ENA_IN,
 input [7:0] DATA_IN,
 input [7:0] POINTER_IN,
+input [1:0] t2mi_packet_type,
 
 input [12:0] t2mi_pid,
 input [12:0] pmt_pid,
@@ -29,13 +38,15 @@ reg [7:0] payload_len;
 reg [7:0] header_out;
 reg start_table;
 reg psync_out;
+reg [7:0] af_len;
 
 reg [2:0] state;
 parameter [3:0] wait_for_start		= 4'h0;
 parameter [3:0] insert_header			= 4'h1;
-parameter [3:0] insert_af_or_pointer= 4'h2;
-parameter [3:0] insert_payload		= 4'h3;
-parameter [3:0] insert_table			= 4'h4;
+parameter [3:0] insert_af				= 4'h2;
+parameter [3:0] insert_pointer		= 4'h3;
+parameter [3:0] insert_payload		= 4'h4;
+parameter [3:0] insert_table			= 4'h5;
 
 always@(posedge CLK or negedge RST)
 begin
@@ -51,6 +62,7 @@ if(!RST)
 	payload_counter <= 0;
 	start_table <= 0;
 	ENA_TS2T2MI <= 0;
+	af_len <= 0;
 	end
 else
 	case(state)
@@ -72,7 +84,7 @@ else
 				end
 			1:	begin
 				header_out[7] <= 0;	// transport error indicator
-				header_out[6] <= (POINTER_IN < 183) ? 1'b1 : 1'b0;	// payload unit start indicator
+				header_out[6] <= ((POINTER_IN > 182) | ((t2mi_packet_type == `l1) & (POINTER_IN > 0))) ? 1'b0 : 1'b1;	// payload unit start indicator
 				header_out[5] <= 0;	// transport priority
 				header_out[4:0] <= t2mi_pid[12:8];
 				psync_out <= 0;
@@ -80,7 +92,28 @@ else
 			2:	header_out <= t2mi_pid[7:0];
 			3:	begin
 				header_out[7:6] <= 0;	// transport scrambling control
-				header_out[5:4] <= (POINTER_IN == 183) ? 2'b11 : 2'b01;	// adaptation field control
+				if(((t2mi_packet_type == `last_bb) & (POINTER_IN < 83)) | ((t2mi_packet_type == `tstamp) & (POINTER_IN == 0)))	// adaptation field control
+					begin
+					header_out[5:4] <= `af_and_payl;
+					af_len <= 8'd82 - POINTER_IN;
+					end
+				else if((t2mi_packet_type == `tstamp) | ((t2mi_packet_type == `l1) & (POINTER_IN == 0)))
+					begin
+					header_out[5:4] <= `af_and_payl;
+					af_len <= 8'd103 - POINTER_IN;
+					end
+				else if(t2mi_packet_type == `l1)
+					begin
+					header_out[5:4] <= `af_and_payl;
+					af_len <= 8'd183 - POINTER_IN;
+					end
+				else if(POINTER_IN == 183)
+					begin
+					header_out[5:4] <= `af_and_payl;
+					af_len <= 0;
+					end
+				else
+					header_out[5:4] <= `payl_only;
 				header_out[3:0] <= continuity_counter;
 				end
 			endcase
@@ -89,28 +122,53 @@ else
 			begin
 			ENA_OUT <= 0;
 			local_counter <= 0;
+			payload_len <= 184;
 			if(POINTER_IN > 183)
 				begin
 				state <= insert_payload;
 				ENA_TS2T2MI <= 1;
-				payload_len <= 184;
 				end
 			else
 				begin
-				state <= insert_af_or_pointer;
-				payload_len <= 183;
+				if((POINTER_IN < 183) & (header_out[5:4] == `payl_only))
+					state <= insert_pointer;
+				else	// if (POINTER_IN == 183) | ((POINTER_IN < 183) & (header_out[5:4] == `af_and_payl))
+					state <= insert_af;
 				end
 			end
 		end
-	insert_af_or_pointer:
+	insert_af:
+		begin
+		if(payload_counter < (af_len + 1'b1))
+			begin
+			case(payload_counter)
+			8'd0:	header_out <= af_len;
+			8'd1:	header_out <= 8'h00;
+			default: header_out <= 8'hFF;
+			endcase
+			ENA_OUT <= 1;
+			payload_counter <= payload_counter + 1'b1;
+			end
+		else
+			begin
+			payload_counter <= 0;
+			ENA_OUT <= 0;
+			payload_len <= 8'd183 - af_len;
+			if((POINTER_IN == 183) | ((t2mi_packet_type == `l1) & (POINTER_IN > 0)))
+				begin
+				state <= insert_payload;
+				ENA_TS2T2MI <= 1;
+				end
+			else
+				state <= insert_pointer;
+			end
+		end
+	insert_pointer:
 		begin
 		if(local_counter < 1)
 			begin
 			ENA_OUT <= 1;
-			if(POINTER_IN == 183)
-				header_out <= 0;	// AF len
-			else
-				header_out <= POINTER_IN;
+			header_out <= POINTER_IN;
 			local_counter <= local_counter + 1'b1;
 			end
 		else
@@ -118,6 +176,7 @@ else
 			local_counter <= 0;
 			ENA_OUT <= 0;
 			state <= insert_payload;
+			payload_len <= payload_len - 1'b1;
 			ENA_TS2T2MI <= 1;
 			end
 		end
@@ -167,7 +226,7 @@ insert_tables insert_tables(
 .DATA_OUT(table_out),
 .ENA_OUT(table_ena),
 .pmt_pid(pmt_pid),
-.t2mi_pid(t2mi_pid),
+.pcr_pid(13'h1FFF),
 .START(start_table),
 .PSYNC(table_psync)
 );
