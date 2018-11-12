@@ -87,7 +87,20 @@ parameter [3:0] insert_L1_header					= 4'h5;
 parameter [3:0] insert_L1							= 4'h6;
 parameter [3:0] insert_crc_32_of_t2mi_packet	= 4'h7;
 
-
+reg [26:0] limit_subseconds [5:0];	// refer to ETSI TS 102 773 (v1.4.1) part 5.2.7.0
+initial
+	begin
+	limit_subseconds[0] <= 27'd130999999;
+	limit_subseconds[1] <= 27'd39999999;
+	limit_subseconds[2] <= 27'd47999999;
+	limit_subseconds[3] <= 27'd55999999;
+	limit_subseconds[4] <= 27'd63999999;
+	limit_subseconds[5] <= 27'd79999999;
+	end
+	
+wire [26:0] current_limit_subseconds = limit_subseconds[bandwidth];
+wire [27:0] subseconds_reg_plus_T_sf_ssu = subseconds_reg + T_sf_ssu;
+wire [27:0] substract_limit = subseconds_reg_plus_T_sf_ssu - current_limit_subseconds;	// two wires were created to avoid "truncated" warnings
 
 always@(posedge CLK or negedge RST)
 begin
@@ -310,7 +323,10 @@ else if(ENA_TS2T2MI)
 				begin
 				frame_idx <= 0;
 				superframe_idx <= superframe_idx + 1'b1;
-				subseconds_reg <= subseconds_reg + T_sf_ssu;
+				if(subseconds_reg_plus_T_sf_ssu > current_limit_subseconds)								// refer to ETSI TS 102 773 (v1.4.1) part 5.2.7.0
+					subseconds_reg <= substract_limit[26:0];
+				else
+					subseconds_reg <= subseconds_reg_plus_T_sf_ssu[26:0];
 				end
 			end
 		end
