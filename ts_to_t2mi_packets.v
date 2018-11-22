@@ -90,12 +90,12 @@ parameter [3:0] insert_crc_32_of_t2mi_packet	= 4'h7;
 reg [26:0] limit_subseconds [5:0];	// refer to ETSI TS 102 773 (v1.4.1) part 5.2.7.0
 initial
 	begin
-	limit_subseconds[0] <= 27'd130999999;
-	limit_subseconds[1] <= 27'd39999999;
-	limit_subseconds[2] <= 27'd47999999;
-	limit_subseconds[3] <= 27'd55999999;
-	limit_subseconds[4] <= 27'd63999999;
-	limit_subseconds[5] <= 27'd79999999;
+	limit_subseconds[0] <= 27'd131000000;
+	limit_subseconds[1] <= 27'd40000000;
+	limit_subseconds[2] <= 27'd48000000;
+	limit_subseconds[3] <= 27'd56000000;
+	limit_subseconds[4] <= 27'd64000000;
+	limit_subseconds[5] <= 27'd80000000;
 	end
 	
 wire [26:0] current_limit_subseconds = limit_subseconds[bandwidth];
@@ -323,7 +323,7 @@ else if(ENA_TS2T2MI)
 				begin
 				frame_idx <= 0;
 				superframe_idx <= superframe_idx + 1'b1;
-				if(subseconds_reg_plus_T_sf_ssu > current_limit_subseconds)								// refer to ETSI TS 102 773 (v1.4.1) part 5.2.7.0
+				if(subseconds_reg_plus_T_sf_ssu >= current_limit_subseconds)								// refer to ETSI TS 102 773 (v1.4.1) part 5.2.7.0
 					subseconds_reg <= substract_limit[26:0];
 				else
 					subseconds_reg <= subseconds_reg_plus_T_sf_ssu[26:0];
